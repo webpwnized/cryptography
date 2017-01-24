@@ -1,8 +1,8 @@
 import argparse
 
 # Shift Cipher
-#     E(x) = (x + n) % 26
-#     D(x) = (x - n) % 26
+#   e(x) = (x + n) % 26
+#   d(x) = (x - n) % 26
 
 ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 

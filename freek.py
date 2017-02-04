@@ -76,8 +76,8 @@ def do_analysis(pTextFile):
 if __name__ == '__main__':
 
     lArgParser = argparse.ArgumentParser()
-    lArgParser.add_argument('-i', '--input-file', help='Read TEXT from an input file', action='store')
-    lArgParser.add_argument('TEXT', nargs="?", help='Text to analyze', type=str, action='store')
+    lArgParser.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store')
+    lArgParser.add_argument('INPUT', nargs="?", help='Text to analyze', type=str, action='store')
     lArgs = lArgParser.parse_args()
 
     if lArgs.input_file:
@@ -85,4 +85,4 @@ if __name__ == '__main__':
         do_analysis(lFile)
         lFile.close()
     else:
-        do_analysis(lArgs.TEXT)
+        do_analysis(lArgs.INPUT)

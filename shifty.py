@@ -3,12 +3,12 @@ import base64
 import sys
 
 def do_encrypt_character(pCharacter: str, pKey: int) -> int:
-    #e(x) = (x + k) % 256
+    #e(x) = (x + k) % 128
     return (ord(pCharacter) + pKey) % 256
 
 
 def do_decrypt_character(pCharacter: str, pKey: int) -> int:
-    #d(x) = (x - k) % 256
+    #d(x) = (x - k) % 128
     return (ord(pCharacter) - pKey) % 256
 
 
@@ -22,10 +22,18 @@ def do_decrypt_byte(pByte: int, pKey: int) -> int:
     return (pByte - pKey) % 256
 
 
-def encrypt_characters(pPlaintextCharacters: str, pKey: int) -> str:
+def encrypt_characters(pPlaintextCharacters: str, pKey: int, pBase64Output: bool) -> str:
     lEncryptedBytes = bytearray()
     lEncryptedBytes.extend(map(lambda x: do_encrypt_character(x, pKey), pPlaintextCharacters))
-    return lEncryptedBytes.decode("utf-8")
+    lUnprintable = False
+    for x in lEncryptedBytes:
+        if x > 127:
+            lUnprintable = True
+            break
+    if lUnprintable or pBase64Output:
+        return base64.b64encode(lEncryptedBytes).decode('utf-8')
+    else:
+        return lEncryptedBytes.decode('utf-8')
 
 
 def encrypt_binary(pPlaintextBytes: bytearray, pKey: int) -> str:
@@ -69,12 +77,12 @@ def print_character_plaintext(pInput: str, pKey: int, pVerbose: bool):
         print('Plain Input: {}'.format(lDecryptedInput))
         print()
     else:
-        print(lDecryptedInput)
+        print(lDecryptedInput, end='')
 
 
-def print_character_ciphertext(pInput: str, pKey: int, pVerbose: bool):
+def print_character_ciphertext(pInput: str, pKey: int, pVerbose: bool, pBase64Output: bool):
 
-    lEncryptedInput = encrypt_characters(pInput, pKey)
+    lEncryptedInput = encrypt_characters(pInput, pKey, pBase64Output)
 
     if pVerbose:
         print('Plain Input: {}'.format(pInput))
@@ -82,7 +90,7 @@ def print_character_ciphertext(pInput: str, pKey: int, pVerbose: bool):
         print('Cipher Output: {}'.format(lEncryptedInput))
         print()
     else:
-        print(lEncryptedInput)
+        print(lEncryptedInput, end='')
 
 
 def print_binary_plaintext(pInput: bytearray, pKey: int, pVerbose: bool):
@@ -113,13 +121,17 @@ def print_binary_ciphertext(pInput: bytearray, pKey: int, pVerbose: bool):
 
 
 def bruteforce_character_plaintext(pInput: str, pVerbose: bool):
-    for i in range(1, 26):
+    for i in range(1, 128):
+        print(i,'-> ',end='')
         print_character_plaintext(pInput, i, pVerbose)
-
+        if not pVerbose: print()
 
 def bruteforce_binary_plaintext(pInput: bytearray, pVerbose: bool):
-    for i in range(1, 26):
+    for i in range(1, 256):
+        print(i,'-> ',end='')
         print_binary_plaintext(pInput, i, pVerbose)
+        if not pVerbose: print()
+
 
 if __name__ == '__main__':
 
@@ -131,15 +143,19 @@ if __name__ == '__main__':
     lKeyOrBruteforceActionGroup.add_argument('-k', '--key', help='Encryption/Decription key', type=int, action='store')
     lKeyOrBruteforceActionGroup.add_argument('-b', '--bruteforce', help='Rather than decrypt with KEY, try to brute force the plaintext.', action='store_true')
     lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
+    lArgParser.add_argument('-b64', '--base64-output', help='Output format will be base64. Only relevant for encryption.', action='store_true')
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
     lArgParser.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store')
     lArgParser.add_argument('INPUT', nargs='?', help='Input value to encrypt/decrypt', type=str, action='store')
     lArgs = lArgParser.parse_args()
 
-    if lArgs.encrypt and not lArgs.key:
+    if lArgs.encrypt and lArgs.key is None:
         lArgParser.error('If -e/--encrypt selected, -k/--key is required')
 
-    if lArgs.decrypt and not (lArgs.key or lArgs.bruteforce):
+    if not lArgs.encrypt and lArgs.base64_output:
+        lArgParser.error('-b64/--base64-output is only relevant if encrypting INPUT')
+
+    if lArgs.decrypt and lArgs.key is None and lArgs.bruteforce is None:
         lArgParser.error("If -d/--decrypt selected, either -k/--key or -b/--bruteforce is required")
 
     if lArgs.input_file:
@@ -155,14 +171,16 @@ if __name__ == '__main__':
 
     if lArgs.encrypt:
 
-        if key_is_trivial(lArgs.key):
-            print('[*] Warning: Key {} is trivial'.format(lArgs.key))
+        if lArgs.verbose:
+            if key_is_trivial(lArgs.key):
+                print('[*] Warning: Key {} is trivial'.format(lArgs.key))
 
-        if key_is_involutary(lArgs.key):
-            print('[*] Warning: Key {} is involutary'.format(lArgs.key))
+            if key_is_involutary(lArgs.key):
+                print('[*] Warning: Key {} is involutary'.format(lArgs.key))
+        #endif
 
         if lArgs.input_format == 'character':
-            print_character_ciphertext(lInput, lArgs.key, lArgs.verbose)
+            print_character_ciphertext(lInput, lArgs.key, lArgs.verbose, lArgs.base64_output)
         else:
             if lArgs.input_format == 'base64':
                 lInput = base64.b64decode(lInput)

@@ -1,135 +1,86 @@
-import argparse
-import base64
-import sys
+import argparse, base64, sys
 
-def do_encrypt_character(pCharacter: str, pKey: int) -> int:
-    #e(x) = (x + k) % 128
-    return (ord(pCharacter) + pKey) % 256
-
-
-def do_decrypt_character(pCharacter: str, pKey: int) -> int:
-    #d(x) = (x - k) % 128
-    return (ord(pCharacter) - pKey) % 256
-
-
-def do_encrypt_byte(pByte: int, pKey: int) -> int:
-    #e(x) = (x + k) % 256
-    return (pByte + pKey) % 256
-
-
-def do_decrypt_byte(pByte: int, pKey: int) -> int:
-    #d(x) = (x - k) % 256
-    return (pByte - pKey) % 256
-
-
-def encrypt_characters(pPlaintextCharacters: str, pKey: int, pBase64Output: bool) -> str:
-    lEncryptedBytes = bytearray()
-    lEncryptedBytes.extend(map(lambda x: do_encrypt_character(x, pKey), pPlaintextCharacters))
-    lUnprintable = False
-    for x in lEncryptedBytes:
-        if x > 127:
-            lUnprintable = True
-            break
-    if lUnprintable or pBase64Output:
-        return base64.b64encode(lEncryptedBytes).decode('utf-8')
-    else:
-        return lEncryptedBytes.decode('utf-8')
-
-
-def encrypt_binary(pPlaintextBytes: bytearray, pKey: int) -> str:
-    lEncryptedBytes = bytearray()
-    lEncryptedBytes.extend(map(lambda x: do_encrypt_byte(x, pKey), pPlaintextBytes))
-    return base64.b64encode(lEncryptedBytes)
-
-
-def decrypt_characters(pCiphertextCharacters: str, pKey: int) -> str:
-    lDecryptedBytes = bytearray()
-    lDecryptedBytes.extend(map(lambda x: do_decrypt_character(x, pKey), pCiphertextCharacters))
-    return lDecryptedBytes.decode("utf-8")
-
-
-def decrypt_binary(pCiphertextBytes: bytearray, pKey: int) -> bytearray:
-    lDecryptedBytes = bytearray()
-    lDecryptedBytes.extend(map(lambda x: do_decrypt_byte(x, pKey), pCiphertextBytes))
-    return lDecryptedBytes
-
+MODULUS = 256
 
 def key_is_involutary(pKey: int) -> bool:
-    # Given e(x) = (x + k) % 26 and d(x) = (x - k) % 26
-    # Involutary key means e(d(x)) = e(e(x)) = x (mod 26)
-    # e(e(x)) = x mod 26 => ((x + k) + k) = x mod 26 => 2k = 0 mod 26 => k = 0 or k = 13
-    return ((2 * pKey) % 26) == 0
+    # Given e(x) = (x + k) % n and d(x) = (x - k) % n
+    # Involutary key means e(d(x)) = e(e(x)) = x (mod n)
+    # e(e(x)) = x mod n => ((x + k) + k) = x mod n => 2k = 0 mod n => k = 0 or k = n/2 mod n
+    return ((2 * pKey) % MODULUS) == 0
 
 
 def key_is_trivial(pKey: int) -> bool:
-    # Given e(x) = (x + k) % 26 and d(x) = (x - k) % 26
-    # Trival key means e(x) = x (mod 26)
-    return (pKey % 26) == 0
+    # Given e(x) = (x + k) % n and d(x) = (x - k) % n
+    # Trival key means e(x) = x (mod n)
+    return (pKey % MODULUS) == 0
 
 
-def print_character_plaintext(pInput: str, pKey: int, pVerbose: bool):
-
-    lDecryptedInput = decrypt_characters(pInput, pKey)
-
-    if pVerbose:
-        print('Cipher Input: {}'.format(pInput))
-        print('Key: {}'.format(pKey))
-        print('Plain Input: {}'.format(lDecryptedInput))
-        print()
-    else:
-        print(lDecryptedInput, end='')
+def do_encrypt(pByte: int, pKey: int) -> int:
+    #e(x) = (x + k) % n
+    return (pByte + pKey) % MODULUS
 
 
-def print_character_ciphertext(pInput: str, pKey: int, pVerbose: bool, pBase64Output: bool):
-
-    lEncryptedInput = encrypt_characters(pInput, pKey, pBase64Output)
-
-    if pVerbose:
-        print('Plain Input: {}'.format(pInput))
-        print('Key: {}'.format(pKey))
-        print('Cipher Output: {}'.format(lEncryptedInput))
-        print()
-    else:
-        print(lEncryptedInput, end='')
+def do_decrypt(pByte: int, pKey: int) -> int:
+    #d(x) = (x - k) % n
+    return (pByte - pKey) % MODULUS
 
 
-def print_binary_plaintext(pInput: bytearray, pKey: int, pVerbose: bool):
+def encrypt(pPlaintextBytes: bytearray, pKey: int) -> bytearray:
+    lEncryptedBytes = bytearray()
+    lEncryptedBytes.extend(map(lambda x: do_encrypt(x, pKey), pPlaintextBytes))
+    return lEncryptedBytes
 
-    lDecryptedInput = decrypt_binary(pInput, pKey)
+
+def decrypt(pCiphertextBytes: bytearray, pKey: int) -> bytearray:
+    lDecryptedBytes = bytearray()
+    lDecryptedBytes.extend(map(lambda x: do_decrypt(x, pKey), pCiphertextBytes))
+    return lDecryptedBytes
+
+
+
+def print_plaintext(pInput: bytearray, pKey: int, pVerbose: bool):
+
+    lDecryptedInput = decrypt(pInput, pKey)
 
     if pVerbose:
-        print('Cipher Input: {}'.format(pInput))
         print('Key: {}'.format(pKey))
-        print('Plain Input: ')
-        sys.stdout.buffer.write(lDecryptedInput)
-        print()
-    else:
-        sys.stdout.buffer.write(lDecryptedInput)
+        print('Cipher Output: ', end='')
+
+    sys.stdout.flush()
+    sys.stdout.buffer.write(lDecryptedInput)
+
+    if pVerbose: print()
 
 
-def print_binary_ciphertext(pInput: bytearray, pKey: int, pVerbose: bool):
+def is_unprintable(pBytes: bytearray) -> bool:
+    for x in pBytes:
+        if x > 127: return True
+    return False
 
-    lEncryptedInput = encrypt_binary(pInput, pKey)
+
+def print_ciphertext(pInput: bytearray, pKey: int, pVerbose: bool, pOutputFormat: str):
+
+    lEncryptedInput = encrypt(pInput, pKey)
+
+    if pOutputFormat == 'character' and is_unprintable(lEncryptedInput): pOutputFormat = 'base64'
+
+    if pOutputFormat == 'base64':
+        lEncryptedInput = base64.b64encode(lEncryptedInput)
 
     if pVerbose:
-        print('Plain Input: {}'.format(pInput))
         print('Key: {}'.format(pKey))
-        print('Cipher Output: {}'.format(lEncryptedInput))
-        print()
-    else:
-        sys.stdout.buffer.write(lEncryptedInput)
+        print('Cipher Output: ', end='')
+
+    sys.stdout.flush()
+    sys.stdout.buffer.write(lEncryptedInput)
+
+    if pVerbose: print()
 
 
-def bruteforce_character_plaintext(pInput: str, pVerbose: bool):
-    for i in range(1, 128):
-        print(i,'-> ',end='')
-        print_character_plaintext(pInput, i, pVerbose)
-        if not pVerbose: print()
-
-def bruteforce_binary_plaintext(pInput: bytearray, pVerbose: bool):
+def bruteforce_plaintext(pInput: bytearray, pVerbose: bool):
     for i in range(1, 256):
         print(i,'-> ',end='')
-        print_binary_plaintext(pInput, i, pVerbose)
+        print_plaintext(pInput, i, pVerbose)
         if not pVerbose: print()
 
 
@@ -143,7 +94,7 @@ if __name__ == '__main__':
     lKeyOrBruteforceActionGroup.add_argument('-k', '--key', help='Encryption/Decription key', type=int, action='store')
     lKeyOrBruteforceActionGroup.add_argument('-b', '--bruteforce', help='Rather than decrypt with KEY, try to brute force the plaintext.', action='store_true')
     lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
-    lArgParser.add_argument('-b64', '--base64-output', help='Output format will be base64. Only relevant for encryption.', action='store_true')
+    lArgParser.add_argument('-of', '--output-format', help='Output format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
     lArgParser.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store')
     lArgParser.add_argument('INPUT', nargs='?', help='Input value to encrypt/decrypt', type=str, action='store')
@@ -152,22 +103,23 @@ if __name__ == '__main__':
     if lArgs.encrypt and lArgs.key is None:
         lArgParser.error('If -e/--encrypt selected, -k/--key is required')
 
-    if not lArgs.encrypt and lArgs.base64_output:
-        lArgParser.error('-b64/--base64-output is only relevant if encrypting INPUT')
-
     if lArgs.decrypt and lArgs.key is None and lArgs.bruteforce is None:
         lArgParser.error("If -d/--decrypt selected, either -k/--key or -b/--bruteforce is required")
 
     if lArgs.input_file:
-        if lArgs.input_format == 'character':
-            lFile = open(lArgs.input_file, 'r')
-            lInput = lFile.read()
-            lFile.close()
+        if lArgs.input_format == 'base64':
+            with open(lArgs.input_file, 'rb') as lFile:
+                lInput = bytearray(base64.b64decode(lFile.read()))
         else:
-            with open(lArgs.input_file, 'rb') as f:
-                lInput = bytearray(f.read())
+            with open(lArgs.input_file, 'rb') as lFile:
+                lInput = bytearray(lFile.read())
     else:
-        lInput = lArgs.INPUT
+        if lArgs.input_format == 'character':
+            lInput = bytearray(lArgs.INPUT.encode())
+        elif lArgs.input_format == 'base64':
+            lInput = bytearray(base64.b64decode(lArgs.INPUT))
+        elif lArgs.input_format == 'binary':
+            lInput = bytearray(lArgs.INPUT)
 
     if lArgs.encrypt:
 
@@ -179,30 +131,13 @@ if __name__ == '__main__':
                 print('[*] Warning: Key {} is involutary'.format(lArgs.key))
         #endif
 
-        if lArgs.input_format == 'character':
-            print_character_ciphertext(lInput, lArgs.key, lArgs.verbose, lArgs.base64_output)
-        else:
-            if lArgs.input_format == 'base64':
-                lInput = base64.b64decode(lInput)
-            print_binary_ciphertext(lInput, lArgs.key, lArgs.verbose)
+        print_ciphertext(lInput, lArgs.key, lArgs.verbose, lArgs.output_format)
 
     elif lArgs.decrypt:
         if lArgs.bruteforce:
             # Test Case: BEEAKFYDJXUQYHYJIQRYHTYJIQFBQDUYJIIKFUHCQD
-            if lArgs.input_format == 'character':
-                bruteforce_character_plaintext(lInput, lArgs.verbose)
-            else:
-                if lArgs.input_format == 'base64':
-                    lInput = base64.b64decode(lInput)
-                bruteforce_binary_plaintext(lInput, lArgs.verbose)
-
+            bruteforce_plaintext(lInput, lArgs.verbose)
         else:
-            if lArgs.input_format == 'character':
-                print_character_plaintext(lInput, lArgs.key, lArgs.verbose)
-            else:
-                if lArgs.input_format == 'base64':
-                    lInput = base64.b64decode(lInput)
-                print_binary_plaintext(lInput, lArgs.key, lArgs.verbose)
-
+            print_plaintext(lInput, lArgs.key, lArgs.verbose)
         # endif
     #endif

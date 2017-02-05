@@ -35,42 +35,6 @@ import argparse, base64
 #         lFrequencyPercentString = TWO_DECIMAL_PLACES.format(lFrequencyPercent)
 #         lBestFrequencyMatchString = 'Best Match: ' + lBestMatch + '(' + TWO_DECIMAL_PLACES.format(lBestFrequencyMatch) + ')'
 #         print(letter, frequency, lFrequencyPercentString, lBestFrequencyMatchString)
-#
-#
-# def do_print_histogram(pDictionary, pTotalCount):
-#
-#     lFrequencyBarLength = 0
-#
-#     print()
-#     for letter, frequency in pDictionary.items():
-#         lFrequencyBarLength = int(frequency / pTotalCount * 500)
-#         print(letter, frequency, "#" * lFrequencyBarLength)
-#
-# def do_analysis(pTextLine):
-#
-#     lTotalCount = 0
-#
-#     for character in pTextLine.upper():
-#         if character in LETTERS_SORTED_ALPHABETICALLY:
-#             LETTERS_DICTIONARY[character]+=1
-#             lTotalCount+=1
-#
-#     do_print_frequency(LETTERS_DICTIONARY, lTotalCount)
-#     do_print_histogram(LETTERS_DICTIONARY, lTotalCount)
-#
-#
-# def do_analysis(pTextFile):
-#
-#     lTotalCount = 0
-#
-#     for line in pTextFile:
-#         for character in line.upper():
-#             if character in LETTERS_SORTED_ALPHABETICALLY:
-#                 LETTERS_DICTIONARY[character]+=1
-#                 lTotalCount+=1
-#
-#     do_print_frequency(LETTERS_DICTIONARY, lTotalCount)
-#     do_print_histogram(LETTERS_DICTIONARY, lTotalCount)
 
 
 def do_print_histogram(pByteCounts: dict, pTotalBytes: int, pShowHistogram: bool, pShowASCII: bool, pShowByteCount: bool, pVerbose: bool) -> None:

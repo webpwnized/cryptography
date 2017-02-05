@@ -37,22 +37,26 @@ import argparse, base64
 #         print(letter, frequency, lFrequencyPercentString, lBestFrequencyMatchString)
 
 
-def do_print_histogram(pByteCounts: dict, pTotalBytes: int, pShowHistogram: bool, pShowASCII: bool, pShowByteCount: bool, pVerbose: bool) -> None:
+def do_print_histogram(pByteCounts: dict, pTotalBytes: int, pShowHistogram: bool, pShowASCII: bool, pVerbose: bool) -> None:
 
     lScaleFactor = 10
 
     for lByte, lByteCount in pByteCounts.items():
         lFrequencyBarLength = int(lByteCount / pTotalBytes * 100 * lScaleFactor)
 
-        lOutput = ''
-        if pVerbose: lOutput = 'Byte: '
-        lOutput += str(lByte) + ' '
-        if pShowASCII: lOutput += chr(lByte) + ' '
-        if pShowByteCount: lOutput += str(lByteCount) + ' '
-        if pShowHistogram: lOutput += "#" * lFrequencyBarLength
-        print(lOutput)
+        if pVerbose or lByteCount:
+            lOutput = ''
+            if pVerbose: lOutput = 'Byte: '
+            lOutput += str(lByte) + ' '
+            if pShowASCII: lOutput += chr(lByte) + ' '
+            lOutput += str(lByteCount) + ' '
+            if pShowHistogram: lOutput += "#" * lFrequencyBarLength
+            print(lOutput)
+        #end if
+    #end if
 
-def analyze(pInput: bytearray, pShowHistogram: bool, pShowASCII: bool, pShowByteCount: bool, pVerbose: bool) -> None:
+
+def analyze(pInput: bytearray, pShowHistogram: bool, pShowASCII: bool, pVerbose: bool) -> None:
     lByteCounts = dict.fromkeys(range(0,256), 0)
     lTotalBytes = 0
 
@@ -60,16 +64,15 @@ def analyze(pInput: bytearray, pShowHistogram: bool, pShowASCII: bool, pShowByte
         lByteCounts[lByte] +=1
         lTotalBytes += 1
 
-    do_print_histogram(lByteCounts, lTotalBytes, pShowHistogram, pShowASCII, pShowByteCount, pVerbose)
+    do_print_histogram(lByteCounts, lTotalBytes, pShowHistogram, pShowASCII, pVerbose)
 
 
 if __name__ == '__main__':
 
     lArgParser = argparse.ArgumentParser()
     lArgParser.add_argument('-g', '--show-histogram', help='Show histogram for each byte of input', action='store_true')
-    lArgParser.add_argument('-s', '--show-ascii', help='Show ascii representation for each byte of input', action='store_true')
-    lArgParser.add_argument('-c', '--show-byte-count', help='Show count for each byte of input', action='store_true')
-    lArgParser.add_argument('-a', '--show-all', help='Show count, ascii represenation and histogram for each byte of input. Equivalent to -gsc', action='store_true')
+    lArgParser.add_argument('-a', '--show-ascii', help='Show ascii representation for each byte of input', action='store_true')
+    lArgParser.add_argument('-all', '--show-all', help='Show count, ascii represenation and histogram for each byte of input. Equivalent to -gs', action='store_true')
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
     lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
     lArgParser.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store')
@@ -93,4 +96,4 @@ if __name__ == '__main__':
 
     if lArgs.show_all: lArgs.show_histogram = lArgs.show_ascii = lArgs.show_byte_count = True
 
-    analyze(lInput, lArgs.show_histogram, lArgs.show_ascii, lArgs.show_byte_count, lArgs.verbose)
+    analyze(lInput, lArgs.show_histogram, lArgs.show_ascii, lArgs.verbose)

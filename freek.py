@@ -39,9 +39,7 @@ import argparse, base64
 
 def do_print_histogram(pByteCounts: dict, pTotalBytes: int, pShowHistogram: bool, pShowASCII: bool, pShowByteCount: bool, pVerbose: bool) -> None:
 
-    lScaleFactor = 5
-    lFrequencyBarLength = 0
-    lOutput = ''
+    lScaleFactor = 10
 
     for lByte, lByteCount in pByteCounts.items():
         lFrequencyBarLength = int(lByteCount / pTotalBytes * 100 * lScaleFactor)

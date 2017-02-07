@@ -2,29 +2,93 @@ import argparse, base64, sys
 
 MODULUS = 256
 
+def euler_totient_function(pInt: int) -> int:
+
+    lPrimeFactors = primes(pInt)
+
+    lPrimeExponents = []
+    lCurrentPrime = [lPrimeFactors[0], 0]
+    for lPrime in lPrimeFactors:
+        if lCurrentPrime[0] != lPrime:
+            lPrimeExponents.append(lCurrentPrime)
+            lCurrentPrime = [lPrime, 0]
+        lCurrentPrime[1] += 1
+    lPrimeExponents.append(lCurrentPrime)
+
+    lPhi = 0
+    for p,e in lPrimeExponents:
+        lPhi *= (p-1)*(p**(e-1))
+
+    return lPhi
+
+def primes(n: int) -> list:
+    lPrimeFactors = []
+
+    #Two is only even prime
+    d = 2
+    while (n % d) == 0:
+        lPrimeFactors.append(d)
+        n //= d
+
+    # Rest of primes are odd numbers. We go faster skipping even numbers
+    d=3
+    while d*d <= n:
+        while (n % d) == 0:
+            lPrimeFactors.append(d)
+            n //= d
+        d += 2
+
+    if n > 1:
+        lPrimeFactors.append(n)
+
+    return lPrimeFactors
+
+
+def gcd(x: int, y: int) -> int:
+    if y > x:
+        #Swap the arguments
+        return gcd(y, x)
+
+    if x % y == 0:
+        #y divides a evenly so y is gcd(x, y)
+        return y
+
+    # We can make calculating GCD easier.
+    # The GCD of a,b is the same as the GCD of a and the remainder of dividing a by b
+    return gcd(y, x % y)
+
+
 def key_is_involutary(pKey: bytearray) -> bool:
     # Given e(x) = (x + k) % n and d(x) = (x - k) % n
     # Involutary key means e(d(x)) = e(e(x)) = x (mod n)
     # e(e(x)) => a(ax + b) + b = x (mod n) => a^2(x) + ab + b = x (mod n)
     # => a^2(x) + b(a + 1) = x (mod n) =>
     # a^2 = 1 (mod n) AND b(a+1) = 0 (mod n)
+    a = pKey[0]
+    b = pKey[1]
     return (((a**2) % MODULUS) == 1) and ((b * (a + 1)) % MODULUS) == 0
 
 
 def key_is_trivial(pKey: bytearray) -> bool:
     # Given e(x) = (ax + b) % n and d(x) = 1/a(x - b) % n
     # Trival key means e(x) = x (mod n). This happens when a=1 and b=0.
-    return pKey[0] == 1 and pKey[1] == 0
+    a = pKey[0]
+    b = pKey[1]
+    return a == 1 and b == 0
 
 
-def do_encrypt(pByte: int, pKey: int) -> int:
+def do_encrypt(pByte: int, pKey: bytearray) -> int:
     #e(x) = (x + k) % n
-    return (pByte + pKey) % MODULUS
+    a = pKey[0]
+    b = pKey[1]
+    return (a * pByte + b) % MODULUS
 
 
 def do_decrypt(pByte: int, pKey: int) -> int:
     #d(x) = (x - k) % n
-    return (pByte - pKey) % MODULUS
+    a = pKey[0]
+    b = pKey[1]
+    return (pByte - b) % MODULUS
 
 
 def encrypt(pPlaintextBytes: bytearray, pKey: int) -> bytearray:
@@ -137,7 +201,26 @@ if __name__ == '__main__':
                 print('[*] Warning: Key {} is involutary'.format(lArgs.key))
         #endif
 
-        #print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format)
+        a = lKey[0]
+        b = lKey[1]
+
+        if abs(a) >= MODULUS:
+            lKey[0] = a % MODULUS
+
+        if abs(b) >= MODULUS:
+            lKey[1] = b % MODULUS
+
+        for i in range(2,30):
+            print(euler_totient_function(i))
+
+        lETF = euler_totient_function(MODULUS)
+        lGCD = gcd(a, MODULUS)
+        if gcd(a, MODULUS) != 1:
+            lArgParser.error("Affine cipher requires the multiplicative key parameter {} be relatively prime to the modulus {}. The GCD of {} and {} is {} rather than 1. Please choose a multiplicative key parameter relatively prime to {}".format(a, MODULUS, a, MODULUS, lGCD, MODULUS))
+
+
+
+        # print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format)
 
     elif lArgs.decrypt:
         if lArgs.bruteforce:

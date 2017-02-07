@@ -37,8 +37,7 @@ def decrypt(pCiphertextBytes: bytearray, pKey: int) -> bytearray:
     return lDecryptedBytes
 
 
-
-def print_plaintext(pInput: bytearray, pKey: int, pVerbose: bool):
+def print_plaintext(pInput: bytearray, pKey: int, pVerbose: bool) -> None:
 
     lDecryptedInput = decrypt(pInput, pKey)
 
@@ -58,7 +57,7 @@ def is_unprintable(pBytes: bytearray) -> bool:
     return False
 
 
-def print_ciphertext(pInput: bytearray, pKey: int, pVerbose: bool, pOutputFormat: str):
+def print_ciphertext(pInput: bytearray, pKey: int, pVerbose: bool, pOutputFormat: str) -> None:
 
     lEncryptedInput = encrypt(pInput, pKey)
 
@@ -77,7 +76,7 @@ def print_ciphertext(pInput: bytearray, pKey: int, pVerbose: bool, pOutputFormat
     if pVerbose: print()
 
 
-def bruteforce_plaintext(pInput: bytearray, pVerbose: bool):
+def bruteforce_plaintext(pInput: bytearray, pVerbose: bool) -> None:
     for i in range(1, 256):
         print(i,'-> ',end='')
         print_plaintext(pInput, i, pVerbose)
@@ -91,7 +90,7 @@ if __name__ == '__main__':
     lEncryptionActionGroup.add_argument('-e', '--encrypt', help='Encrypt INPUT. This option requires a KEY.', action='store_true')
     lEncryptionActionGroup.add_argument('-d', '--decrypt', help='Decrypt INPUT. This option requires a KEY or BRUTEFORCE flag.', action='store_true')
     lKeyOrBruteforceActionGroup = lArgParser.add_mutually_exclusive_group(required=True)
-    lKeyOrBruteforceActionGroup.add_argument('-k', '--key', help='Encryption/Decription key', type=int, action='store')
+    lKeyOrBruteforceActionGroup.add_argument('-k', '--key', help='Encryption/Decryption key', type=int, action='store')
     lKeyOrBruteforceActionGroup.add_argument('-b', '--bruteforce', help='Rather than decrypt with KEY, try to brute force the plaintext.', action='store_true')
     lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
     lArgParser.add_argument('-of', '--output-format', help='Output format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')

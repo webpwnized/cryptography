@@ -66,12 +66,13 @@ def is_unprintable(pBytes: bytearray) -> bool:
     return False
 
 
-def print_plaintext(pInput: bytearray, pKey: int, pVerbose: bool) -> None:
+def print_plaintext(pInput: bytearray, pKey: int, pVerbose: bool, pUnmodifiedKey: str) -> None:
 
     lDecryptedInput = decrypt(pInput, pKey)
 
     if pVerbose:
-        print('Key: {}'.format(pKey))
+        print('Unmodified Key: {}'.format(pUnmodifiedKey))
+        print('Derived Key: {}'.format(list(pKey)))
         print('Cipher Output: ', end='')
 
     sys.stdout.flush()
@@ -80,7 +81,7 @@ def print_plaintext(pInput: bytearray, pKey: int, pVerbose: bool) -> None:
     if pVerbose: print()
 
 
-def print_ciphertext(pInput: bytearray, pKey: bytearray, pVerbose: bool, pOutputFormat: str) -> None:
+def print_ciphertext(pInput: bytearray, pKey: bytearray, pVerbose: bool, pOutputFormat: str, pUnmodifiedKey: str) -> None:
 
     lEncryptedInput = encrypt(pInput, pKey)
 
@@ -90,7 +91,8 @@ def print_ciphertext(pInput: bytearray, pKey: bytearray, pVerbose: bool, pOutput
         lEncryptedInput = base64.b64encode(lEncryptedInput)
 
     if pVerbose:
-        print('Key: {}'.format(pKey))
+        print('Unmodified Key: {}'.format(pUnmodifiedKey))
+        print('Derived Key: {}'.format(list(pKey)))
         print('Cipher Output: ', end='')
 
     sys.stdout.flush()
@@ -145,10 +147,10 @@ if __name__ == '__main__':
                 print('[*] Warning: Key {} is involutary'.format(lArgs.key))
         #endif
 
-        print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format)
+        print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format, lArgs.key)
 
     elif lArgs.decrypt:
 
-        print_plaintext(lInput, lKey, lArgs.verbose)
+        print_plaintext(lInput, lKey, lArgs.verbose, lArgs.key)
 
     #endif

@@ -73,7 +73,7 @@ def print_plaintext(pInput: bytearray, pKey: int, pVerbose: bool, pUnmodifiedKey
     if pVerbose:
         print('Unmodified Key: {}'.format(pUnmodifiedKey))
         print('Derived Key: {}'.format(list(pKey)))
-        print('Cipher Output: ', end='')
+        print('Plain Output: ', end='')
 
     sys.stdout.flush()
     sys.stdout.buffer.write(lDecryptedInput)

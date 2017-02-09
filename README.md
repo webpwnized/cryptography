@@ -35,6 +35,58 @@ Optional arguments:
     -i INPUT_FILE, --input-file INPUT_FILE
                         Read INPUT from an input file
 
+# Affinity
+
+Usage: affinity.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
+                   [-of {character,binary,base64}] [-v] [-i INPUT_FILE]
+                   [INPUT]
+
+Required arguments:
+
+    INPUT                 Input value to encrypt/decrypt
+
+Optional arguments:
+
+    -h, --help            show this help message and exit
+    -e, --encrypt         Encrypt INPUT. This option requires a KEY.
+    -d, --decrypt         Decrypt INPUT. This option requires a KEY or
+                        BRUTEFORCE flag.
+    -k KEY, --key KEY     Encryption/Decryption key in a,b format
+    -if {character,binary,base64}, --input-format {character,binary,base64}
+                        Input format can be character, binary, or base64
+    -of {character,binary,base64}, --output-format {character,binary,base64}
+                        Output format can be character, binary, or base64
+    -v, --verbose         Enables verbose output
+    -i INPUT_FILE, --input-file INPUT_FILE
+                        Read INPUT from an input file
+
+# Visionary
+
+An implementation of Vigenère Cipher
+
+Usage: visionary.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
+                    [-of {character,binary,base64}] [-v] [-i INPUT_FILE]
+                    [INPUT]
+
+Required arguments:
+    
+    INPUT                 Input value to encrypt/decrypt
+
+Optional arguments:
+
+    -h, --help            show this help message and exit
+    -e, --encrypt         Encrypt INPUT. This option requires a KEY.
+    -d, --decrypt         Decrypt INPUT. This option requires a KEY or
+                        BRUTEFORCE flag.
+    -k KEY, --key KEY     Encryption/Decryption key
+    -if {character,binary,base64}, --input-format {character,binary,base64}
+                        Input format can be character, binary, or base64
+    -of {character,binary,base64}, --output-format {character,binary,base64}
+                        Output format can be character, binary, or base64
+    -v, --verbose         Enables verbose output
+    -i INPUT_FILE, --input-file INPUT_FILE
+                        Read INPUT from an input file
+
 # Freek
 
 Byte frequency analyzer
@@ -66,32 +118,5 @@ Optional arguments:
     -if {character,binary,base64}, --input-format {character,binary,base64}
                         Input format can be character, binary, or base64
 
-    -i INPUT_FILE, --input-file INPUT_FILE
-                        Read INPUT from an input file
-
-# Visionary
-
-An implementation of Vigenère Cipher
-
-Usage: visionary.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
-                    [-of {character,binary,base64}] [-v] [-i INPUT_FILE]
-                    [INPUT]
-
-Required arguments:
-    
-    INPUT                 Input value to encrypt/decrypt
-
-Optional arguments:
-
-    -h, --help            show this help message and exit
-    -e, --encrypt         Encrypt INPUT. This option requires a KEY.
-    -d, --decrypt         Decrypt INPUT. This option requires a KEY or
-                        BRUTEFORCE flag.
-    -k KEY, --key KEY     Encryption/Decryption key
-    -if {character,binary,base64}, --input-format {character,binary,base64}
-                        Input format can be character, binary, or base64
-    -of {character,binary,base64}, --output-format {character,binary,base64}
-                        Output format can be character, binary, or base64
-    -v, --verbose         Enables verbose output
     -i INPUT_FILE, --input-file INPUT_FILE
                         Read INPUT from an input file

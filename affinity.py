@@ -2,26 +2,44 @@ import argparse, base64, sys
 
 MODULUS = 256
 
+
+# return (g, x, y) a*x + b*y = gcd(x, y)
+def extended_euclidian_algorithm(a, b):
+    if a == 0:
+        return (b, 0, 1)
+    else:
+        g, x, y = extended_euclidian_algorithm(b % a, a)
+        return (g, y - (b // a) * x, x)
+
+
+# x = mulinv(b) mod n, (x * b) % n == 1
+def get_multiplicative_inverse(b, n):
+    g, x, _ = extended_euclidian_algorithm(b, n)
+    if g == 1:
+        return x % n
+
+
 def euler_totient_function(pInt: int) -> int:
 
-    lPrimeFactors = primes(pInt)
+    lPrimeFactors = get_prime_factors(pInt)
 
-    lPrimeExponents = []
+    lPrimeFactorsAndExponents = []
     lCurrentPrime = [lPrimeFactors[0], 0]
     for lPrime in lPrimeFactors:
         if lCurrentPrime[0] != lPrime:
-            lPrimeExponents.append(lCurrentPrime)
+            lPrimeFactorsAndExponents.append(lCurrentPrime)
             lCurrentPrime = [lPrime, 0]
         lCurrentPrime[1] += 1
-    lPrimeExponents.append(lCurrentPrime)
+    lPrimeFactorsAndExponents.append(lCurrentPrime)
 
-    lPhi = 0
-    for p,e in lPrimeExponents:
+    lPhi = 1
+    for p,e in lPrimeFactorsAndExponents:
         lPhi *= (p-1)*(p**(e-1))
 
     return lPhi
 
-def primes(n: int) -> list:
+
+def get_prime_factors(n: int) -> list:
     lPrimeFactors = []
 
     #Two is only even prime
@@ -84,11 +102,9 @@ def do_encrypt(pByte: int, pKey: bytearray) -> int:
     return (a * pByte + b) % MODULUS
 
 
-def do_decrypt(pByte: int, pKey: int) -> int:
+def do_decrypt(pByte: int, pa: int, pb: int) -> int:
     #d(x) = (x - k) % n
-    a = pKey[0]
-    b = pKey[1]
-    return (pByte - b) % MODULUS
+    return (pa * (pByte - pb)) % MODULUS
 
 
 def encrypt(pPlaintextBytes: bytearray, pKey: int) -> bytearray:
@@ -97,15 +113,19 @@ def encrypt(pPlaintextBytes: bytearray, pKey: int) -> bytearray:
     return lEncryptedBytes
 
 
-def decrypt(pCiphertextBytes: bytearray, pKey: int) -> bytearray:
+def decrypt(pCiphertextBytes: bytearray, pa: int, pb: int) -> bytearray:
     lDecryptedBytes = bytearray()
-    lDecryptedBytes.extend(map(lambda x: do_decrypt(x, pKey), pCiphertextBytes))
+    lDecryptedBytes.extend(map(lambda x: do_decrypt(x, pa, pb), pCiphertextBytes))
     return lDecryptedBytes
 
 
-def print_plaintext(pInput: bytearray, pKey: int, pVerbose: bool):
+def print_plaintext(pInput: bytearray, pKey: int, pVerbose: bool, pDecodedKey: str) -> None:
 
-    lDecryptedInput = decrypt(pInput, pKey)
+    a = pKey[0]
+    b = pKey[1]
+
+    inverse_a = get_multiplicative_inverse(a, MODULUS)
+    lDecryptedInput = decrypt(pInput, inverse_a, b)
 
     if pVerbose:
         print('Key: {}'.format(pKey))
@@ -123,7 +143,7 @@ def is_unprintable(pBytes: bytearray) -> bool:
     return False
 
 
-def print_ciphertext(pInput: bytearray, pKey: int, pVerbose: bool, pOutputFormat: str):
+def print_ciphertext(pInput: bytearray, pKey: int, pVerbose: bool, pOutputFormat: str, pDecodedKey: str) -> None:
 
     lEncryptedInput = encrypt(pInput, pKey)
 
@@ -133,20 +153,13 @@ def print_ciphertext(pInput: bytearray, pKey: int, pVerbose: bool, pOutputFormat
         lEncryptedInput = base64.b64encode(lEncryptedInput)
 
     if pVerbose:
-        print('Key: {}'.format(pKey))
+        print('Key: {}'.format(pDecodedKey))
         print('Cipher Output: ', end='')
 
     sys.stdout.flush()
     sys.stdout.buffer.write(lEncryptedInput)
 
     if pVerbose: print()
-
-
-def bruteforce_plaintext(pInput: bytearray, pVerbose: bool):
-    for i in range(1, 256):
-        print(i,'-> ',end='')
-        print_plaintext(pInput, i, pVerbose)
-        if not pVerbose: print()
 
 
 if __name__ == '__main__':
@@ -173,6 +186,12 @@ if __name__ == '__main__':
             for lSubkey in lKey:
                 if type(lSubkey) != int:
                     raise Exception('Keys not of type integer')
+
+            if abs(lKey[0]) >= MODULUS:
+                lKey[0] = lKey[0] % MODULUS
+
+            if abs(lKey[1]) >= MODULUS:
+                lKey[1] = lKey[1] % MODULUS
         except:
             lArgParser.error("Affine cipher requires two keys of type integer. Input key in a,b format. i.e. --key=1,1")
 
@@ -204,29 +223,18 @@ if __name__ == '__main__':
         a = lKey[0]
         b = lKey[1]
 
-        if abs(a) >= MODULUS:
-            lKey[0] = a % MODULUS
-
-        if abs(b) >= MODULUS:
-            lKey[1] = b % MODULUS
-
-        for i in range(2,30):
-            print(euler_totient_function(i))
-
-        lETF = euler_totient_function(MODULUS)
         lGCD = gcd(a, MODULUS)
-        if gcd(a, MODULUS) != 1:
-            lArgParser.error("Affine cipher requires the multiplicative key parameter {} be relatively prime to the modulus {}. The GCD of {} and {} is {} rather than 1. Please choose a multiplicative key parameter relatively prime to {}".format(a, MODULUS, a, MODULUS, lGCD, MODULUS))
+        if lGCD != 1:
+            lNumberOfInverses = euler_totient_function(MODULUS)
+            lRelativePrimes = []
+            for i in range(1,MODULUS):
+                if gcd(i, MODULUS) == 1:
+                    lRelativePrimes.append(i)
+            lNumberPossibleKeys = lNumberOfInverses * MODULUS
+            lArgParser.error("Affine cipher requires the multiplicative key parameter {} be relatively prime to the modulus {}. The GCD of {} and {} is {} rather than 1. Please choose a multiplicative key parameter relatively prime to {}. There are {} integers relatively prime to {}. You may pick from {}. Since the value of the additive key parameter can be any value between 0 and {}, there are {} possible keys.".format(a, MODULUS, a, MODULUS, lGCD, MODULUS, lNumberOfInverses, MODULUS, lRelativePrimes, MODULUS, lNumberPossibleKeys))
 
-
-
-        # print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format)
+        print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format, lArgs.key)
 
     elif lArgs.decrypt:
-        if lArgs.bruteforce:
-            # Test Case: BEEAKFYDJXUQYHYJIQRYHTYJIQFBQDUYJIIKFUHCQD
-            bruteforce_plaintext(lInput, lArgs.verbose)
-        else:
-            print_plaintext(lInput, lKey, lArgs.verbose)
-        # endif
+        print_plaintext(lInput, lKey, lArgs.verbose, lArgs.key)
     #endif

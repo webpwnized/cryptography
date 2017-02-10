@@ -8,7 +8,7 @@ def get_delta_index_of_coincidence(pInput: bytearray) -> dict:
     # IOC:
     # Calculate the frequency of each byte and total number of bytes
     # For each frequency f, calculate f(f - 1) and sum these values
-    MAX_POSITIONS_TO_ANALYZE = 300
+    MAX_POSITIONS_TO_ANALYZE = 60
 
     lBytesOfInput = len(pInput)
     lPositionsToAnalyze = min(lBytesOfInput, MAX_POSITIONS_TO_ANALYZE)
@@ -44,12 +44,19 @@ def print_delta_index_of_coincidence(pInput: bytearray) -> None:
     # end for
 
 
-def print_results(pByteCounts: dict, pTotalBytes: int, pShowHistogram: bool, pShowASCII: bool, pPercent: bool, pVerbose: bool) -> None:
+def print_analysis(pInput: bytearray, pShowHistogram: bool, pShowASCII: bool, pPercent: bool, pVerbose: bool) -> None:
+    lByteCounts = dict.fromkeys(range(0,256), 0)
+    lTotalBytes = 0
+
+    for lByte in pInput:
+        lByteCounts[lByte] += 1
+        lTotalBytes += 1
+    # end for
 
     lScaleFactor = 20
 
-    for lByte, lByteCount in pByteCounts.items():
-        lPercent = lByteCount / pTotalBytes * 100
+    for lByte, lByteCount in lByteCounts.items():
+        lPercent = lByteCount / lTotalBytes * 100
         lFrequencyBarLength = int(lPercent * lScaleFactor)
 
         if pVerbose or lByteCount:
@@ -67,18 +74,6 @@ def print_results(pByteCounts: dict, pTotalBytes: int, pShowHistogram: bool, pSh
             print(lOutput)
         # end if
     # end for
-
-
-def analyze(pInput: bytearray, pShowHistogram: bool, pShowASCII: bool, pPercent: bool, pVerbose: bool) -> None:
-    lByteCounts = dict.fromkeys(range(0,256), 0)
-    lTotalBytes = 0
-
-    for lByte in pInput:
-        lByteCounts[lByte] += 1
-        lTotalBytes += 1
-    # end for
-
-    print_results(lByteCounts, lTotalBytes, pShowHistogram, pShowASCII, pPercent, pVerbose)
 
 
 if __name__ == '__main__':
@@ -114,7 +109,7 @@ if __name__ == '__main__':
     if lArgs.show_all:
         lArgs.show_percent = lArgs.show_histogram = lArgs.show_ascii = True
 
-    #analyze(lInput, lArgs.show_histogram, lArgs.show_ascii,  lArgs.show_percent, lArgs.verbose)
+    print_analysis(lInput, lArgs.show_histogram, lArgs.show_ascii,  lArgs.show_percent, lArgs.verbose)
 
     if lArgs.show_ioc:
         print_delta_index_of_coincidence(lInput)

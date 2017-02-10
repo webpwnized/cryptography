@@ -8,14 +8,15 @@ def get_delta_index_of_coincidence(pInput: bytearray) -> dict:
     # IOC:
     # Calculate the frequency of each byte and total number of bytes
     # For each frequency f, calculate f(f - 1) and sum these values
-    MAX_POSITIONS_TO_ANALYZE = 60
+    MAX_SHIFTS_TO_ANALYZE = 60
 
+    # We shift at least one character
     lBytesOfInput = len(pInput)
-    lPositionsToAnalyze = min(lBytesOfInput, MAX_POSITIONS_TO_ANALYZE)
-    lIOC = dict.fromkeys(range(1, lPositionsToAnalyze), 0)
-    for lBytesShifted in range(1, lPositionsToAnalyze):
+    lShiftsToAnalyze = min(lBytesOfInput - 1, MAX_SHIFTS_TO_ANALYZE)
+    lIOC = dict.fromkeys(range(1, lShiftsToAnalyze), 0)
+    for lBytesShifted in range(1, lShiftsToAnalyze):
         lMatches = 0
-        lBytesToTest = lPositionsToAnalyze - lBytesShifted
+        lBytesToTest = lBytesOfInput - lBytesShifted
         for lByte in range(0, lBytesToTest):
             if pInput[lByte] == pInput[lByte + lBytesShifted]:
                 lMatches += 1
@@ -44,7 +45,7 @@ def print_delta_index_of_coincidence(pInput: bytearray) -> None:
     # end for
 
 
-def print_analysis(pInput: bytearray, pShowHistogram: bool, pShowASCII: bool, pPercent: bool, pVerbose: bool) -> None:
+def print_analysis(pInput: bytearray, pShowCount: bool, pShowHistogram: bool, pShowASCII: bool, pPercent: bool, pVerbose: bool) -> None:
     lByteCounts = dict.fromkeys(range(0,256), 0)
     lTotalBytes = 0
 
@@ -66,7 +67,8 @@ def print_analysis(pInput: bytearray, pShowHistogram: bool, pShowASCII: bool, pP
             lOutput += str(lByte) + ' '
             if pShowASCII:
                 lOutput += chr(lByte) + ' '
-            lOutput += str(lByteCount) + ' '
+            if pShowCount:
+                lOutput += str(lByteCount) + ' '
             if pPercent:
                 lOutput += "(" + TWO_DECIMAL_PLACES.format(lPercent) + "%) "
             if pShowHistogram:
@@ -79,16 +81,21 @@ def print_analysis(pInput: bytearray, pShowHistogram: bool, pShowASCII: bool, pP
 if __name__ == '__main__':
 
     lArgParser = argparse.ArgumentParser()
-    lArgParser.add_argument('-p', '--show-percent', help='Show percent representation for each byte of input', action='store_true')
-    lArgParser.add_argument('-g', '--show-histogram', help='Show histogram for each byte of input', action='store_true')
-    lArgParser.add_argument('-a', '--show-ascii', help='Show ascii representation for each byte of input', action='store_true')
-    lArgParser.add_argument('-all', '--show-all', help='Show count, ascii, percent represenation and histogram for each byte of input. Equivalent to -gs', action='store_true')
-    lArgParser.add_argument('-ioc', '--show-ioc', help='Show kappa (delta) index of coincidence', action='store_true')
+    lOutputOptions = lArgParser.add_argument_group(title="Output Options", description="Choose the type(s) of output to display")
+    lOutputOptions.add_argument('-c', '--show-count', help='Show count for each byte of input', action='store_true')
+    lOutputOptions.add_argument('-p', '--show-percent', help='Show percent representation for each byte of input', action='store_true')
+    lOutputOptions.add_argument('-g', '--show-histogram', help='Show histogram for each byte of input', action='store_true')
+    lOutputOptions.add_argument('-a', '--show-ascii', help='Show ascii representation for each byte of input', action='store_true')
+    lOutputOptions.add_argument('-ioc', '--show-ioc', help='Show kappa (delta) index of coincidence', action='store_true')
+    lOutputOptions.add_argument('-all', '--show-all', help='Show count, ascii, percent represenation, histogram for each byte of input and index of coincidence. Equivalent to -cpga -ioc', action='store_true')
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
     lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
     lArgParser.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store')
     lArgParser.add_argument('INPUT', nargs='?', help='INPUT to analyze', type=str, action='store')
     lArgs = lArgParser.parse_args()
+
+    if lArgs.show_percent is False and lArgs.show_histogram is False and lArgs.show_ascii is False and lArgs.show_count is False and lArgs.show_ioc is False:
+        lArgParser.error('No output chosen to display. Please choose at least one output option.')
 
     if lArgs.input_file:
         if lArgs.input_format == 'base64':
@@ -107,9 +114,10 @@ if __name__ == '__main__':
     # end if
 
     if lArgs.show_all:
-        lArgs.show_percent = lArgs.show_histogram = lArgs.show_ascii = True
+        lArgs.show_percent = lArgs.show_histogram = lArgs.show_ascii = lArgs.show_count = lArgs.show_ioc = True
 
-    print_analysis(lInput, lArgs.show_histogram, lArgs.show_ascii,  lArgs.show_percent, lArgs.verbose)
+    if lArgs.show_percent or lArgs.show_histogram or lArgs.show_ascii or lArgs.show_count:
+        print_analysis(lInput, lArgs.show_count, lArgs.show_histogram, lArgs.show_ascii, lArgs.show_percent, lArgs.verbose)
 
     if lArgs.show_ioc:
         print_delta_index_of_coincidence(lInput)

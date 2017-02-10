@@ -4,7 +4,7 @@ MODULUS = 256
 
 
 def do_derive_key(pLetter: str) -> int:
-    return ord(pLetter) - 65
+    return (ord(pLetter.lower()) - 97) % MODULUS
 
 
 def derive_key(pKey: str) -> bytearray:
@@ -85,7 +85,8 @@ def print_ciphertext(pInput: bytearray, pKey: bytearray, pVerbose: bool, pOutput
 
     lEncryptedInput = encrypt(pInput, pKey)
 
-    if pOutputFormat == 'character' and is_unprintable(lEncryptedInput): pOutputFormat = 'base64'
+    if pOutputFormat == 'character' and is_unprintable(lEncryptedInput):
+        pOutputFormat = 'base64'
 
     if pOutputFormat == 'base64':
         lEncryptedInput = base64.b64encode(lEncryptedInput)
@@ -94,6 +95,7 @@ def print_ciphertext(pInput: bytearray, pKey: bytearray, pVerbose: bool, pOutput
         print('Unmodified Key: {}'.format(pUnmodifiedKey))
         print('Derived Key: {}'.format(list(pKey)))
         print('Cipher Output: ', end='')
+    # end if
 
     sys.stdout.flush()
     sys.stdout.buffer.write(lEncryptedInput)

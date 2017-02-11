@@ -6,11 +6,14 @@ TWO_DECIMAL_PLACES = "{0:.2f}"
 
 def get_delta_index_of_coincidence(pInput: bytearray) -> dict:
     # IOC:
-    # Calculate the frequency of each byte and total number of bytes
-    # For each frequency f, calculate f(f - 1) and sum these values
+    # For each shift, add up the times the two bytes offset by lBytesShifted happen to match (coincidental)
+    # We shift at least one character up to a max of MAX_SHIFTS_TO_ANALYZE characters
+    # When the shift is equal to the length of the key, the bytes compared will have been encyrypted by
+    # the same key and will be statistically more likely to be the same character. (About twice as likely)
+    # These "bumps" will be evident in the histogram with a period equal to the length of the key
+
     MAX_SHIFTS_TO_ANALYZE = 60
 
-    # We shift at least one character
     lBytesOfInput = len(pInput)
     lShiftsToAnalyze = min(lBytesOfInput - 1, MAX_SHIFTS_TO_ANALYZE)
     lIOC = dict.fromkeys(range(1, lShiftsToAnalyze), 0)
@@ -31,7 +34,7 @@ def get_delta_index_of_coincidence(pInput: bytearray) -> dict:
 def print_delta_index_of_coincidence(pInput: bytearray) -> None:
     lIOC = get_delta_index_of_coincidence(pInput)
 
-    lScaleFactor = 10
+    lScaleFactor = 40
 
     for lByteOffset, lCoincidence in lIOC.items():
         lPercentCoincidence = lCoincidence * 100

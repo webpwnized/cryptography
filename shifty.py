@@ -68,6 +68,7 @@ def print_ciphertext(pInput: bytearray, pKey: int, pVerbose: bool, pOutputFormat
 
     if pVerbose:
         print('Key: {}'.format(pKey))
+        print('Output Format: {}'.format(pOutputFormat))
         print('Cipher Output: ', end='')
 
     sys.stdout.flush()
@@ -93,7 +94,7 @@ if __name__ == '__main__':
     lKeyOrBruteforceActionGroup.add_argument('-k', '--key', help='Encryption/Decryption key', type=int, action='store')
     lKeyOrBruteforceActionGroup.add_argument('-b', '--bruteforce', help='Rather than decrypt with KEY, try to brute force the plaintext.', action='store_true')
     lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
-    lArgParser.add_argument('-of', '--output-format', help='Output format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
+    lArgParser.add_argument('-of', '--output-format', help='Output format can be character, binary, or base64. If input format provided, but output format is not provided, output format defaults to match input format.', choices=['character', 'binary', 'base64'], action='store')
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
     lArgParser.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store')
     lArgParser.add_argument('INPUT', nargs='?', help='Input value to encrypt/decrypt', type=str, action='store')
@@ -119,6 +120,9 @@ if __name__ == '__main__':
             lInput = bytearray(base64.b64decode(lArgs.INPUT))
         elif lArgs.input_format == 'binary':
             lInput = bytearray(lArgs.INPUT)
+
+    if lArgs.input_format and not lArgs.output_format:
+        lArgs.output_format = lArgs.input_format
 
     if lArgs.encrypt:
 

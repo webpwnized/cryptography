@@ -91,32 +91,43 @@ Optional arguments:
 
 Byte frequency analyzer
 
-Usage: freek.py [-h] [-g] [-s] [-c] [-a] [-v] [-if {character,binary,base64}]
-                [-i INPUT_FILE]
+Usage: freek.py [-h] [-c] [-p] [-m] [-a] [-ioc] [-all] [-t TOP_FREQUENCIES]
+                [-g] [-col COLUMNAR_ANALYSIS] [-v]
+                [-if {character,binary,base64}] [-i INPUT_FILE]
                 [INPUT]
 
 Required arguments:
-
+    
     INPUT                 INPUT to analyze
 
 Optional arguments:
 
     -h, --help            show this help message and exit
-
-    -g, --show-histogram  Show histogram for each byte of input
-
-    -s, --show-ascii      Show ascii representation for each byte of input
-
-    -c, --show-byte-count
-                        Show count for each byte of input
-
-    -a, --show-all        Show count, ascii represenation and histogram for each
-                        byte of input. Equivalent to -gsc
-
+    -t TOP_FREQUENCIES, --top-frequencies TOP_FREQUENCIES
+                        Only display top X frequencies. Particuarly useful
+                        when combined with columnar analysis or when less
+                        important bytes clutter analysis.
+    -g, --show-guesses    Show ascii representation for top byte of input. Tries
+                        ASCII lower, upper and numeric translations. Only
+                        works with -t/--top-frequencies.
+    -col COLUMNAR_ANALYSIS, --columnar-analysis COLUMNAR_ANALYSIS
+                        Break INPUT into X columns and perform analysis on
+                        columns. Particuarly useful against polyalphabetic
+                        stream ciphers.
     -v, --verbose         Enables verbose output
-
     -if {character,binary,base64}, --input-format {character,binary,base64}
                         Input format can be character, binary, or base64
-
     -i INPUT_FILE, --input-file INPUT_FILE
-                        Read INPUT from an input file
+                        Read INPUT to analyze from an input file
+    
+    Output Options:
+    Choose the type(s) of output to display
+    
+    -c, --show-count      Show count for each byte of input
+    -p, --show-percent    Show percent representation for each byte of input
+    -m, --show-histogram  Show histogram for each byte of input
+    -a, --show-ascii      Show ascii representation for each byte of input
+    -ioc, --show-ioc      Show kappa (delta) index of coincidence
+    -all, --show-all      Show count, ascii, percent represenation, histogram
+                        for each byte of input. Does NOT include index of
+                        coincidence. Equivalent to -cpmag.

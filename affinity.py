@@ -19,9 +19,9 @@ def get_multiplicative_inverse(b, n):
         return x % n
 
 
-def euler_totient_function(pInt: int) -> int:
-
-    lPrimeFactors = get_prime_factors(pInt)
+def euler_totient_function(pModulus: int) -> int:
+    # phi(m) = product(from 1 to #prime factors): (prime-factor(i) ^ exponent(prime-factor(i))) - (prime-factor(i) ^ exponent(prime-factor(i)) - 1)
+    lPrimeFactors = get_prime_factors(pModulus)
 
     lPrimeFactorsAndExponents = []
     lCurrentPrime = [lPrimeFactors[0], 0]
@@ -235,7 +235,7 @@ if __name__ == '__main__':
                 if gcd(i, MODULUS) == 1:
                     lRelativePrimes.append(i)
             lNumberPossibleKeys = lNumberOfInverses * MODULUS
-            lArgParser.error("Affine cipher requires the multiplicative key parameter {} be relatively prime to the modulus {}. The GCD of {} and {} is {} rather than 1. Please choose a multiplicative key parameter relatively prime to {}. There are {} integers relatively prime to {}. You may pick from {}. Since the value of the additive key parameter can be any value between 0 and {}, there are {} possible keys.".format(a, MODULUS, a, MODULUS, lGCD, MODULUS, lNumberOfInverses, MODULUS, lRelativePrimes, MODULUS, lNumberPossibleKeys))
+            lArgParser.error("Affine cipher requires the multiplicative key parameter {} be relatively prime to the modulus {}. The GCD of {} and {} is {} rather than 1. Please choose a multiplicative key parameter relatively prime to {}. There are {} integers relatively prime to {}. You may pick from {}. Since the value of the additive key parameter can be any value between 0 and {} ({} possible values), there are {} * {} = {} possible keys.".format(a, MODULUS, a, MODULUS, lGCD, MODULUS, lNumberOfInverses, MODULUS, lRelativePrimes, MODULUS - 1, MODULUS, lNumberOfInverses, MODULUS, lNumberPossibleKeys))
 
         print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format, lArgs.key)
 

@@ -1,6 +1,6 @@
 import argparse, base64, sys
 
-MODULUS = 15
+MODULUS = 256
 
 
 # return (g, x, y) a*x + b*y = gcd(x, y)

@@ -2,6 +2,29 @@ import argparse, base64, sys
 
 MODULUS = 256
 
+def get_involutary_keys(pRelativePrimes: list, pModulus: int) -> list:
+
+    lInvolutaryKeys = []
+    for lRelativePrime in lRelativePrimes:
+        # if a**2 = 1 (mod m) and either b = 0 or a = -1 (mod m), then key is involutary
+        if ((lRelativePrime ** 2) % MODULUS == 1):
+            # Same as saying lRelativePrime (mod m) == -1 (mod m)
+            if (lRelativePrime % MODULUS) == (MODULUS - 1):
+                lInvolutaryKeys.append([lRelativePrime, "Any b in 0-{}".format(MODULUS)])
+            else:
+                for lAdditiveKeyParameter in range(0, MODULUS):
+                    if (lAdditiveKeyParameter * (lRelativePrime + 1)) % MODULUS == 0:
+                        lInvolutaryKeys.append([lRelativePrime, lAdditiveKeyParameter])
+    return lInvolutaryKeys
+
+
+def get_relative_primes(pModulus: int) -> list:
+    lRelativePrimes = []
+    for i in range(1, pModulus):
+        if gcd(i, pModulus) == 1:
+            lRelativePrimes.append(i)
+    return lRelativePrimes
+
 
 # return (g, x, y) a*x + b*y = gcd(x, y)
 def extended_euclidian_algorithm(a, b):
@@ -176,8 +199,9 @@ if __name__ == '__main__':
     lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
     lArgParser.add_argument('-of', '--output-format', help='Output format can be character, binary, or base64. If input format provided, but output format is not provided, output format defaults to match input format.', choices=['character', 'binary', 'base64'], action='store')
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
-    lArgParser.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store')
-    lArgParser.add_argument('INPUT', nargs='?', help='Input value to encrypt/decrypt', type=str, action='store')
+    lInputSourceGroup = lArgParser.add_mutually_exclusive_group(required=True)
+    lInputSourceGroup.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store')
+    lInputSourceGroup.add_argument('INPUT', nargs='?', help='Input value to encrypt/decrypt', type=str, action='store')
     lArgs = lArgParser.parse_args()
 
     if (lArgs.encrypt or lArgs.decrypt) and lArgs.key is None:
@@ -232,22 +256,9 @@ if __name__ == '__main__':
         lGCD = gcd(a, MODULUS)
         if lGCD != 1:
             lNumberOfInverses = euler_totient_function(MODULUS)
-            lRelativePrimes = []
-            for i in range(1,MODULUS):
-                if gcd(i, MODULUS) == 1:
-                    lRelativePrimes.append(i)
+            lRelativePrimes = get_relative_primes(MODULUS)
             lNumberPossibleKeys = lNumberOfInverses * MODULUS
-            lInvolutaryKeys = []
-            for lRelativePrime in lRelativePrimes:
-                # if a**2 = 1 (mod m) and either b = 0 or a = -1 (mod m), then key is involutary
-                if ((lRelativePrime**2) % MODULUS == 1):
-                        # Same as saying lRelativePrime (mod m) == -1 (mod m)
-                        if (lRelativePrime % MODULUS) == (MODULUS-1):
-                            lInvolutaryKeys.append([lRelativePrime, "Any b in 0-{}".format(MODULUS)])
-                        else:
-                            for lAdditiveKeyParameter in range(0,MODULUS):
-                                if (lAdditiveKeyParameter * (lRelativePrime + 1)) % MODULUS == 0:
-                                    lInvolutaryKeys.append([lRelativePrime, lAdditiveKeyParameter])
+            lInvolutaryKeys = get_involutary_keys(lRelativePrimes, MODULUS)
             lArgParser.error("Affine cipher requires the multiplicative key parameter {} be relatively prime to the modulus {}. The GCD of {} and {} is {} rather than 1. Please choose a multiplicative key parameter relatively prime to {}. There are {} integers relatively prime to {}. You may pick from {}. Since the value of the additive key parameter can be any value between 0 and {} ({} possible values), there are {} * {} = {} possible keys. Watch out for involutary keys {}.".format(a, MODULUS, a, MODULUS, lGCD, MODULUS, lNumberOfInverses, MODULUS, lRelativePrimes, MODULUS - 1, MODULUS, lNumberOfInverses, MODULUS, lNumberPossibleKeys, lInvolutaryKeys))
 
         print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format, lArgs.key)

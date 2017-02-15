@@ -1,6 +1,6 @@
 import argparse, base64, sys
 
-MODULUS = 256
+MODULUS = 15
 
 
 # return (g, x, y) a*x + b*y = gcd(x, y)
@@ -20,7 +20,8 @@ def get_multiplicative_inverse(b, n):
 
 
 def euler_totient_function(pModulus: int) -> int:
-    # phi(m) = product(from 1 to #prime factors): (prime-factor(i) ^ exponent(prime-factor(i))) - (prime-factor(i) ^ exponent(prime-factor(i)) - 1)
+    # phi(m) = product(from 1 to #prime factors):
+    #           (prime-factor(i) - 1) * (prime-factor(i) ^ (exponent(prime-factor(i)) - 1)
     lPrimeFactors = get_prime_factors(pModulus)
 
     lPrimeFactorsAndExponents = []
@@ -82,6 +83,7 @@ def key_is_involutary(pKey: bytearray) -> bool:
     # e(e(x)) => a(ax + b) + b = x (mod n) => a^2(x) + ab + b = x (mod n)
     # => a^2(x) + b(a + 1) = x (mod n) =>
     # a^2 = 1 (mod n) AND b(a+1) = 0 (mod n)
+    # Note: b(a+1) = 0 (mod n) when b = 0 or when a = -1 (mod n)
     a = pKey[0]
     b = pKey[1]
     return (((a**2) % MODULUS) == 1) and ((b * (a + 1)) % MODULUS) == 0
@@ -235,7 +237,18 @@ if __name__ == '__main__':
                 if gcd(i, MODULUS) == 1:
                     lRelativePrimes.append(i)
             lNumberPossibleKeys = lNumberOfInverses * MODULUS
-            lArgParser.error("Affine cipher requires the multiplicative key parameter {} be relatively prime to the modulus {}. The GCD of {} and {} is {} rather than 1. Please choose a multiplicative key parameter relatively prime to {}. There are {} integers relatively prime to {}. You may pick from {}. Since the value of the additive key parameter can be any value between 0 and {} ({} possible values), there are {} * {} = {} possible keys.".format(a, MODULUS, a, MODULUS, lGCD, MODULUS, lNumberOfInverses, MODULUS, lRelativePrimes, MODULUS - 1, MODULUS, lNumberOfInverses, MODULUS, lNumberPossibleKeys))
+            lInvolutaryKeys = []
+            for lRelativePrime in lRelativePrimes:
+                # if a**2 = 1 (mod m) and either b = 0 or a = -1 (mod m), then key is involutary
+                if ((lRelativePrime**2) % MODULUS == 1):
+                        # Same as saying lRelativePrime (mod m) == -1 (mod m)
+                        if (lRelativePrime % MODULUS) == (MODULUS-1):
+                            lInvolutaryKeys.append([lRelativePrime, "Any b in 0-{}".format(MODULUS)])
+                        else:
+                            for lAdditiveKeyParameter in range(0,MODULUS):
+                                if (lAdditiveKeyParameter * (lRelativePrime + 1)) % MODULUS == 0:
+                                    lInvolutaryKeys.append([lRelativePrime, lAdditiveKeyParameter])
+            lArgParser.error("Affine cipher requires the multiplicative key parameter {} be relatively prime to the modulus {}. The GCD of {} and {} is {} rather than 1. Please choose a multiplicative key parameter relatively prime to {}. There are {} integers relatively prime to {}. You may pick from {}. Since the value of the additive key parameter can be any value between 0 and {} ({} possible values), there are {} * {} = {} possible keys. Watch out for involutary keys {}.".format(a, MODULUS, a, MODULUS, lGCD, MODULUS, lNumberOfInverses, MODULUS, lRelativePrimes, MODULUS - 1, MODULUS, lNumberOfInverses, MODULUS, lNumberPossibleKeys, lInvolutaryKeys))
 
         print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format, lArgs.key)
 

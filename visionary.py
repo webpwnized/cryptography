@@ -115,8 +115,9 @@ if __name__ == '__main__':
     lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
     lArgParser.add_argument('-of', '--output-format', help='Output format can be character, binary, or base64. If input format provided, but output format is not provided, output format defaults to match input format.', choices=['character', 'binary', 'base64'], action='store')
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
-    lArgParser.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store')
-    lArgParser.add_argument('INPUT', nargs='?', help='Input value to encrypt/decrypt', type=str, action='store')
+    lInputSourceGroup = lArgParser.add_mutually_exclusive_group(required=True)
+    lInputSourceGroup.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store')
+    lInputSourceGroup.add_argument('INPUT', nargs='?', help='Input value to encrypt/decrypt', type=str, action='store')
     lArgs = lArgParser.parse_args()
 
     if (lArgs.encrypt or lArgs.decrypt) and lArgs.key is None:

@@ -132,7 +132,7 @@ def do_decrypt(pByte: int, pa: int, pb: int) -> int:
     return (pa * (pByte - pb)) % MODULUS
 
 
-def encrypt(pPlaintextBytes: bytearray, pKey: int) -> bytearray:
+def encrypt(pPlaintextBytes: bytearray, pKey: bytearray) -> bytearray:
     lEncryptedBytes = bytearray()
     lEncryptedBytes.extend(map(lambda x: do_encrypt(x, pKey), pPlaintextBytes))
     return lEncryptedBytes
@@ -144,7 +144,7 @@ def decrypt(pCiphertextBytes: bytearray, pa: int, pb: int) -> bytearray:
     return lDecryptedBytes
 
 
-def print_plaintext(pInput: bytearray, pKey: int, pVerbose: bool, pDecodedKey: str) -> None:
+def print_plaintext(pInput: bytearray, pKey: bytearray, pVerbose: bool, pDecodedKey: str) -> None:
 
     a = pKey[0]
     b = pKey[1]
@@ -153,7 +153,7 @@ def print_plaintext(pInput: bytearray, pKey: int, pVerbose: bool, pDecodedKey: s
     lDecryptedInput = decrypt(pInput, inverse_a, b)
 
     if pVerbose:
-        print('Key: {}'.format(pKey))
+        print('Key: {}'.format(pDecodedKey))
         print('Cipher Output: ', end='')
 
     sys.stdout.flush()
@@ -168,7 +168,7 @@ def is_unprintable(pBytes: bytearray) -> bool:
     return False
 
 
-def print_ciphertext(pInput: bytearray, pKey: int, pVerbose: bool, pOutputFormat: str, pDecodedKey: str) -> None:
+def print_ciphertext(pInput: bytearray, pKey: bytearray, pVerbose: bool, pOutputFormat: str, pDecodedKey: str) -> None:
 
     lEncryptedInput = encrypt(pInput, pKey)
 

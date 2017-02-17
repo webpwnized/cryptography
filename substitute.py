@@ -1,6 +1,16 @@
 import argparse, base64, sys, math
 
 
+PADDING_INDICATION_BLOCK_LENGTH = 10
+
+
+def get_padblock() -> bytearray:
+    lPadBlock = bytearray()
+    for i in range(0, PADDING_INDICATION_BLOCK_LENGTH):
+        lPadBlock.append(i)
+    return lPadBlock
+
+
 def derive_key(pKey: str) -> list:
     lKey = list(map(int, lArgs.key.split(',')))
 
@@ -17,6 +27,13 @@ def derive_key(pKey: str) -> list:
         raise Exception('Key missing digits')
 
     return lKey
+
+
+def invert_key(pKey: list) -> list:
+    lInvertedKey = []
+    for lIndex, lKeyValue in enumerate(pKey):
+        lInvertedKey.append(pKey.index(lIndex))
+    return lInvertedKey
 
 
 def key_is_involutary(pKey: list) -> bool:
@@ -37,21 +54,11 @@ def key_is_trivial(pKey: list) -> bool:
     return True
 
 
-def do_encrypt(pByte: int, pKey: int) -> int:
-    #e(x) = (x + k) % n
-    return (pByte + pKey) % MODULUS
-
-
-def do_decrypt(pByte: int, pKey: int) -> int:
-    #d(x) = (x - k) % n
-    return (pByte - pKey) % MODULUS
-
-
-def encrypt(pPlaintextBytes: bytearray, pKey: list) -> tuple:
+def encrypt(pPlaintextBytes: bytearray, pKey: list) -> bytearray:
     lEncryptedBytes = bytearray()
     lLengthKey = len(pKey)
     lLengthPlaintext = len(pPlaintextBytes)
-    lPadBytesNeeded = lLengthPlaintext % lLengthKey
+    lPadBytesNeeded = lLengthKey - (lLengthPlaintext % lLengthKey)
 
     if lPadBytesNeeded > 0:
         for i in range(0, lPadBytesNeeded):
@@ -64,17 +71,40 @@ def encrypt(pPlaintextBytes: bytearray, pKey: list) -> tuple:
         lKeyValue = pKey[lKeyIndex]
         lCurrentBlock = lRound * lLengthKey
         lEncryptedBytes.append(pPlaintextBytes[lCurrentBlock + lKeyValue])
-        print(pKey, lRound, lKeyIndex, lKeyValue, lCurrentBlock, lEncryptedBytes)
 
-    return lEncryptedBytes, lPadBytesNeeded
+    if lPadBytesNeeded > 0:
+        lEncryptedBytes += get_padblock()
+
+    return lEncryptedBytes
 
 
 def decrypt(pCiphertextBytes: bytearray, pKey: list) -> bytearray:
     lDecryptedBytes = bytearray()
-    lLengthKey = len(pKey)
-    for lIndex, lCiphertextByte in enumerate(pCiphertextBytes):
-        lDecryptedBytes.append(do_decrypt(lCiphertextByte, pKey[(lIndex % lLengthKey)]))
-    return lDecryptedBytes
+    lLengthCiphertext = len(pCiphertextBytes)
+    lStartPaddingIndicationBlock = lLengthCiphertext-PADDING_INDICATION_BLOCK_LENGTH
+    lEndPaddingIndicationBlock = lLengthCiphertext
+    lPaddingDetected = False
+    lPadBlock = get_padblock()
+    lPadBytesNeeded = 0
+
+    lDecryptionKey = invert_key(pKey)
+    lLengthKey = len(lDecryptionKey)
+
+    if pCiphertextBytes[lStartPaddingIndicationBlock:lEndPaddingIndicationBlock] == lPadBlock:
+        lPaddingDetected = True
+        lLengthCiphertext -= PADDING_INDICATION_BLOCK_LENGTH
+
+    for lIndex in range(0, lLengthCiphertext):
+        lRound = math.floor(lIndex / lLengthKey)
+        lKeyIndex = lIndex % lLengthKey
+        lKeyValue = lDecryptionKey[lKeyIndex]
+        lCurrentBlock = lRound * lLengthKey
+        lDecryptedBytes.append(pCiphertextBytes[lCurrentBlock + lKeyValue])
+
+    if lPaddingDetected:
+        lPadBytesNeeded = lDecryptedBytes[lLengthCiphertext-1]
+
+    return lDecryptedBytes[0:lLengthCiphertext-lPadBytesNeeded]
 
 
 def is_unprintable(pBytes: bytearray) -> bool:
@@ -100,7 +130,7 @@ def print_plaintext(pInput: bytearray, pKey: list, pVerbose: bool) -> None:
 
 def print_ciphertext(pInput: bytearray, pKey: list, pVerbose: bool, pOutputFormat: str) -> None:
 
-    lEncryptedInput, lPadBytesNeeded = encrypt(pInput, pKey)
+    lEncryptedInput = encrypt(pInput, pKey)
 
     if pOutputFormat == 'character' and is_unprintable(lEncryptedInput):
         pOutputFormat = 'base64'

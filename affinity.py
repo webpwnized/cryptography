@@ -36,8 +36,8 @@ def extended_euclidian_algorithm(a, b):
 
 
 # x = mulinv(b) mod n, (x * b) % n == 1
-def get_multiplicative_inverse(b, n):
-    g, x, _ = extended_euclidian_algorithm(b, n)
+def get_multiplicative_inverse(a, n):
+    g, x, _ = extended_euclidian_algorithm(a, n)
     if g == 1:
         return x % n
 

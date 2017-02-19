@@ -34,6 +34,21 @@ def get_multiplicative_inverse(a, n):
         return x % n
 
 
+def get_gcd(x: int, y: int) -> int:
+
+    if y > x and x != 0:
+        #Swap the arguments
+        return get_gcd(y, x)
+
+    if x % y == 0:
+        #y divides x evenly so y is gcd(x, y)
+        return y
+
+    # We can make calculating GCD easier.
+    # The GCD of a,b is the same as the GCD of a and the remainder of dividing a by b
+    return get_gcd(y, x % y)
+
+
 def get_adjunct(pMatrix: bytearray, pModulus: list) -> bytearray:
 
     lAdjunct = bytearray()
@@ -100,10 +115,19 @@ def key_is_involutary(pKey: bytearray, pModulus: int) -> bool:
 
     lSizeOfMatrix = len(pKey)
     if lSizeOfMatrix != 4:
-        raise Exception('I dont know how to do non-2x2 matrices yet')
+        raise Exception('I only know how to do 2x2 matrices')
 
+    # If key matrix is not invertible, it cannot be involutary
     lDeterminant = get_determinant(pKey, pModulus)
+    if lDeterminant == 0:
+        return False
 
+    # If key matrix is not invertible, it cannot be involutary
+    lGCD = get_gcd(lDeterminant, pModulus)
+    if lGCD != 1:
+        return False
+
+    # For the matrix to be involutary, it is neccesary the determinant be +/-1 mod n
     lNegative1ModN = pModulus - 1
     if lDeterminant == lNegative1ModN or lDeterminant == 1:
         lInverseKey = get_inverse_matrix(pKey, pModulus)

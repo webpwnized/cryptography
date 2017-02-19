@@ -67,46 +67,165 @@ def print_matrix(pMatrix: bytearray) -> None:
     print()
 
 
-def get_adjunct(pMatrix: bytearray, pModulus: int) -> bytearray:
+def get_determinant(pMatrix: bytearray, pModulus: int) -> int:
 
-    lAdjunct = bytearray()
+    lSizeOfMatrix = len(pMatrix)
+    if lSizeOfMatrix != 4 and lSizeOfMatrix != 9:
+        raise Exception('I only know how to do 2x2 and 3x3 matrices')
+
+    if lSizeOfMatrix == 4:
+        a = pMatrix[0]
+        b = pMatrix[1]
+        c = pMatrix[2]
+        d = pMatrix[3]
+
+        # Calculate determinant of matrix
+        return ((a * d) - (b * c)) % pModulus
+
+    if lSizeOfMatrix == 9:
+        # For a 3x3 matrix, the determinant can be calculated
+        # by the rule of triangles. The value of the determinant is equal to the
+        # sum of products of main diagonal elements and products of elements lying
+        # on the triangles with side which parallel to the main diagonal, from which
+        # subtracted the product of the antidiagonal elements and products of elements
+        # lying on the triangles with side which parallel to the anti-diagonal.
+
+        # a   b   c
+        # d   e   f
+        # g   h   i
+        a = pMatrix[0]
+        b = pMatrix[1]
+        c = pMatrix[2]
+        d = pMatrix[3]
+        e = pMatrix[4]
+        f = pMatrix[5]
+        g = pMatrix[6]
+        h = pMatrix[7]
+        i = pMatrix[8]
+
+        # a11·a22·a33 + a12·a23·a31 + a13·a21·a32 - a13·a22·a31 - a11·a23·a32 - a12·a21·a33
+        return ((a * e * i) + (b * f * g) + (c * d * h) - (c * e * g) - (b * d * i) - (a * f * h)) % pModulus
+
+
+def get_transpose(pMatrix: bytearray, pModulus: int) -> bytearray:
+    # The transposed matrix is its reflection about the main diagonal
+    # The columns become rows and rows become columns
+
+    lTranspose = bytearray()
     lSizeOfMatrix = len(pMatrix)
 
-    if lSizeOfMatrix != 4:
-        raise Exception('I dont know how to do non-2x2 matrices yet')
+    if lSizeOfMatrix != 4 and lSizeOfMatrix != 9:
+        raise Exception('I only know how to do 2x2 and 3x3 matrices')
 
-    a = pMatrix[0]
-    b = pMatrix[1]
-    c = pMatrix[2]
-    d = pMatrix[3]
+    if lSizeOfMatrix == 4:
+        # For 2x2 matrix
+        # a   c
+        # b   d
+        a = pMatrix[0]
+        b = pMatrix[1]
+        c = pMatrix[2]
+        d = pMatrix[3]
 
-    # Calculate adjunct of matrix
-    lAdjunct.append(d)
-    lAdjunct.append(get_int_modulo_n_in_zn(-1 * b, pModulus))
-    lAdjunct.append(get_int_modulo_n_in_zn(-1 * c, pModulus))
-    lAdjunct.append(a)
+        # Calculate adjunct of matrix
+        lTranspose.append(a)
+        lTranspose.append(c)
+        lTranspose.append(b)
+        lTranspose.append(d)
+
+    if lSizeOfMatrix == 9:
+        # For a 3x3 matrix
+        # a   d   g
+        # b   e   h
+        # c   f   i
+
+        a = pMatrix[0]
+        b = pMatrix[1]
+        c = pMatrix[2]
+        d = pMatrix[3]
+        e = pMatrix[4]
+        f = pMatrix[5]
+        g = pMatrix[6]
+        h = pMatrix[7]
+        i = pMatrix[8]
+
+        lTranspose.append(a)
+        lTranspose.append(d)
+        lTranspose.append(g)
+        lTranspose.append(b)
+        lTranspose.append(e)
+        lTranspose.append(h)
+        lTranspose.append(c)
+        lTranspose.append(f)
+        lTranspose.append(i)
+
+    return lTranspose
+
+
+def get_adjunct(pMatrix: bytearray, pModulus: int) -> bytearray:
+    # The adjunct is the transposed matrix of cofactors
+    lSizeOfMatrix = len(pMatrix)
+
+    if lSizeOfMatrix != 4 and lSizeOfMatrix != 9:
+        raise Exception('I only know how to do 2x2 and 3x3 matrices')
+
+    lCofactors = get_cofactors(pMatrix, pModulus)
+    lAdjunct = get_transpose(lCofactors, pModulus)
 
     return lAdjunct
 
 
-def get_minors(pMatrix: bytearray) -> bytearray:
-
+def get_minors(pMatrix: bytearray, pModulus:int) -> bytearray:
+    # The minor of the matrix is found by calculating the
+    # determinant of each element of the matrix. An elements
+    # determinant is the determinant of the remaining elements
+    # after disregarding the row and column in which the element sits
     lMinor = bytearray()
     lSizeOfMatrix = len(pMatrix)
 
-    if lSizeOfMatrix != 4:
-        raise Exception('I dont know how to do non-2x2 matrices yet')
+    if lSizeOfMatrix != 4 and lSizeOfMatrix != 9:
+        raise Exception('I only know how to do 2x2 and 3x3 matrices')
 
-    a = pMatrix[0]
-    b = pMatrix[1]
-    c = pMatrix[2]
-    d = pMatrix[3]
+    if lSizeOfMatrix == 4:
+        # For a 2x2 matrix, the minor of an element is the diagonally
+        # opposed element
+        a = pMatrix[0]
+        b = pMatrix[1]
+        c = pMatrix[2]
+        d = pMatrix[3]
 
-    # Calculate minor of matrix
-    lMinor.append(d)
-    lMinor.append(c)
-    lMinor.append(b)
-    lMinor.append(a)
+        # Calculate minor of matrix
+        lMinor.append(d)
+        lMinor.append(c)
+        lMinor.append(b)
+        lMinor.append(a)
+
+    if lSizeOfMatrix == 9:
+        # For a 3x3 matrix, the minor of an element is the diagonally
+        # opposed determinant
+
+        # a   b   c
+        # d   e   f
+        # g   h   i
+        a = pMatrix[0]
+        b = pMatrix[1]
+        c = pMatrix[2]
+        d = pMatrix[3]
+        e = pMatrix[4]
+        f = pMatrix[5]
+        g = pMatrix[6]
+        h = pMatrix[7]
+        i = pMatrix[8]
+
+        # Calculate minors of matrix
+        lMinor.append(((e * i) - (f * h)) % pModulus) #a
+        lMinor.append(((d * i) - (f * g)) % pModulus) #b
+        lMinor.append(((d * h) - (e * g)) % pModulus) #c
+        lMinor.append(((b * i) - (c * h)) % pModulus) #d
+        lMinor.append(((a * i) - (c * g)) % pModulus) #e
+        lMinor.append(((a * h) - (b * g)) % pModulus) #f
+        lMinor.append(((b * f) - (c * e)) % pModulus) #g
+        lMinor.append(((a * f) - (c * d)) % pModulus) #h
+        lMinor.append(((a * e) - (b * d)) % pModulus) #i
 
     return lMinor
 
@@ -116,52 +235,59 @@ def get_cofactors(pMatrix: bytearray, pModulus: int) -> bytearray:
     lCofactors = bytearray()
     lSizeOfMatrix = len(pMatrix)
 
-    if lSizeOfMatrix != 4:
-        raise Exception('I dont know how to do non-2x2 matrices yet')
+    if lSizeOfMatrix != 4 and lSizeOfMatrix != 9:
+        raise Exception('I only know how to do 2x2 and 3x3 matrices')
 
-    a = pMatrix[0]
-    b = pMatrix[1]
-    c = pMatrix[2]
-    d = pMatrix[3]
+    if lSizeOfMatrix == 4:
+        lCofactors = get_minors(pMatrix, pModulus)
 
-    # Calculate cofactors of matrix
-    lCofactors.append(d)
-    lCofactors.append(get_int_modulo_n_in_zn(-1 * c, pModulus))
-    lCofactors.append(get_int_modulo_n_in_zn(-1 * b, pModulus))
-    lCofactors.append(a)
+        b = lCofactors[1]
+        c = lCofactors[2]
+
+        # Calculate cofactors of matrix (negate odd row/col)
+        lCofactors[1] = get_int_modulo_n_in_zn(-1 * b, pModulus)
+        lCofactors[2] = get_int_modulo_n_in_zn(-1 * c, pModulus)
+
+    if lSizeOfMatrix == 9:
+        # For a 3x3 matrix, the minor of an element is the diagonally
+        # opposed determinant. The cofactor is the minor when the
+        # (column # + row #) is even and -1 * the minor otherwise
+
+        #  a   -b   c
+        # -d    e  -f
+        #  g   -h   i
+        lCofactors = get_minors(pMatrix, pModulus)
+
+        b = lCofactors[1]
+        d = lCofactors[3]
+        f = lCofactors[5]
+        h = lCofactors[7]
+
+        lCofactors[1] = get_int_modulo_n_in_zn(-1 * b, pModulus)
+        lCofactors[3] = get_int_modulo_n_in_zn(-1 * d, pModulus)
+        lCofactors[5] = get_int_modulo_n_in_zn(-1 * f, pModulus)
+        lCofactors[7] = get_int_modulo_n_in_zn(-1 * h, pModulus)
 
     return lCofactors
-
-
-def get_determinant(pMatrix: bytearray, pModulus: int) -> int:
-
-    lSizeOfMatrix = len(pMatrix)
-    if lSizeOfMatrix != 4:
-        raise Exception('I do not know how to do non-2x2 matrices yet')
-
-    a = pMatrix[0]
-    b = pMatrix[1]
-    c = pMatrix[2]
-    d = pMatrix[3]
-
-    # Calculate determinant of matrix
-    return ((a * d) - (b * c)) % pModulus
 
 
 def get_inverse_matrix(pMatrix: bytearray, pModulus: int) -> bytearray:
 
     lInverseMatrix = bytearray()
     lSizeOfMatrix = len(pMatrix)
-    if lSizeOfMatrix != 4:
-        raise Exception('I do not know how to do non-2x2 matrices yet')
+    if lSizeOfMatrix != 4 and lSizeOfMatrix != 9:
+        raise Exception('I only know how to do 2x2 and 3x3 matrices')
 
-    # Calculate adjunct of matrix
-    lAdjunct = get_adjunct(pMatrix, pModulus)
     lDeterminant = get_determinant(pMatrix, pModulus)
+    if lDeterminant == 0:
+        raise Exception('The determinant of the matrix is zero so the matrix cannot be inverted. Inversion requires inverse of the determinant. The inverse of 0 is undefined.')
+
     lGCD = get_gcd(lDeterminant, pModulus)
     if lGCD != 1:
         raise Exception('For the matrix to be invertible, the inverse of the determinant {} must be calculated (mod {}), but this is not possible since the GCD of the determinant and the modulus is not 1 but {}'.format(lDeterminant, pModulus, lGCD))
+
     lInverseDeterminant = get_multiplicative_inverse(lDeterminant, pModulus)
+    lAdjunct = get_adjunct(pMatrix, pModulus)
 
     for i in range(0, lSizeOfMatrix):
         lInverseMatrix.append(get_int_modulo_n_in_zn(lInverseDeterminant * lAdjunct[i], pModulus))
@@ -174,11 +300,12 @@ if __name__ == '__main__':
     lArgParser = argparse.ArgumentParser(description='Maitre D: A matrix variant calculator within modulo MODULUS')
     lArgParser.add_argument('-d', '--determinant', help='Calculate the determinant of the matrix modulo MODULUS. Answer will be in Z-MODULUS.', action='store_true')
     lArgParser.add_argument('-id', '--inverse-determinant', help='Calculate the inverse of the determinant of the matrix modulo MODULUS. Answer will be in Z-MODULUS.', action='store_true')
+    lArgParser.add_argument('-t', '--transpose', help='Calculate the transpose of the matrix modulo MODULUS', action='store_true')
     lArgParser.add_argument('-mi', '--minors', help='Calculate the minors of the matrix modulo MODULUS', action='store_true')
     lArgParser.add_argument('-c', '--cofactors', help='Calculate the cofactors of the matrix modulo MODULUS', action='store_true')
     lArgParser.add_argument('-a', '--adjunct', help='Calculate the adjunct of the matrix modulo MODULUS', action='store_true')
     lArgParser.add_argument('-i', '--inverse', help='Calculate the inverse of the matrix modulo MODULUS', action='store_true')
-    lArgParser.add_argument('-all', '--all', help='Calculate the determinant, inverse determinant, adjunct and inverse of the matrix modulo MODULUS. Same as -id -dai', action='store_true')
+    lArgParser.add_argument('-all', '--all', help='Calculate the determinant, inverse determinant, transpose, adjunct and inverse of the matrix modulo MODULUS. Same as -id -dai', action='store_true')
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
     lArgParser.add_argument('-m', '--modulus', help='Modulus. Default is 256.', action='store', default=256, type=int)
     lArgParser.add_argument('INPUT', nargs='?', help='Input matrix of integers. The matrix must be square. For example a 2 X 2 matrix could be 1, 2, 3, 4', type=str, action='store')
@@ -189,7 +316,7 @@ if __name__ == '__main__':
     lDeterminant = 0
 
     if lArgs.all:
-        lArgs.determinant = lArgs.inverse_determinant = lArgs.minors = lArgs.cofactors = lArgs.adjunct = lArgs.inverse = True
+        lArgs.determinant = lArgs.inverse_determinant = lArgs.transpose = lArgs.minors = lArgs.cofactors = lArgs.adjunct = lArgs.inverse = True
 
     if lArgs.verbose:
         print()
@@ -214,8 +341,14 @@ if __name__ == '__main__':
         if lArgs.verbose:
             print()
 
+    if lArgs.transpose:
+        lTransposeMatrix = get_transpose(lMatrix, lModulus)
+        if lArgs.verbose:
+            print('Transpose Matrix (mod {}): '.format(lModulus))
+        print_matrix(lTransposeMatrix)
+
     if lArgs.minors:
-        lMinorsMatrix = get_minors(lMatrix)
+        lMinorsMatrix = get_minors(lMatrix, lModulus)
         if lArgs.verbose:
             print('Minors Matrix (mod {}): '.format(lModulus))
         print_matrix(lMinorsMatrix)

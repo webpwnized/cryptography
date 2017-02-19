@@ -78,6 +78,21 @@ def get_int_modulo_n_in_zn(pInt, pModulus):
     return lAModuloN
 
 
+def get_gcd(x: int, y: int) -> int:
+
+    if y > x and x != 0:
+        #Swap the arguments
+        return get_gcd(y, x)
+
+    if x % y == 0:
+        #y divides x evenly so y is gcd(x, y)
+        return y
+
+    # We can make calculating GCD easier.
+    # The GCD of a,b is the same as the GCD of a and the remainder of dividing a by b
+    return get_gcd(y, x % y)
+
+
 def get_inverse_matrix(pMatrix: bytearray, pModulus: int) -> bytearray:
 
     lInverseMatrix = bytearray()
@@ -88,6 +103,9 @@ def get_inverse_matrix(pMatrix: bytearray, pModulus: int) -> bytearray:
     # Calculate adjunct of matrix
     lAdjunct = get_adjunct(pMatrix, pModulus)
     lDeterminant = get_determinant(pMatrix, pModulus)
+    lGCD = get_gcd(lDeterminant, pModulus)
+    if lGCD != 1:
+        raise Exception('For the matrix to be invertible, the inverse of the determinant {} must be calculated (mod {}), but this is not possible since the GCD of the determinant and the modulus is not 1 but {}'.format(lDeterminant, pModulus, lGCD))
     lInverseDeterminant = get_multiplicative_inverse(lDeterminant, pModulus)
 
     for i in range(0, lSizeOfMatrix):

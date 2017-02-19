@@ -13,25 +13,19 @@ Required arguments:
 Optional arguments:
 
     -h, --help            show this help message and exit
-
     -e, --encrypt         Encrypt INPUT. This option requires a KEY.
-
     -d, --decrypt         Decrypt INPUT. This option requires a KEY or
                         BRUTEFORCE flag.
-
     -k KEY, --key KEY     Encryption/Decription key
-
     -b, --bruteforce      Rather than decrypt with KEY, try to brute force the
                         plaintext.
-
     -if {character,binary,base64}, --input-format {character,binary,base64}
                         Input format can be character, binary, or base64
-
     -of {character,binary,base64}, --output-format {character,binary,base64}
                         Output format can be character, binary, or base64
-
+    -m MODULUS, --modulus MODULUS
+                        Modulus. Default is 256.
     -v, --verbose         Enables verbose output
-
     -i INPUT_FILE, --input-file INPUT_FILE
                         Read INPUT from an input file
 
@@ -58,6 +52,8 @@ Optional arguments:
                         Input format can be character, binary, or base64
     -of {character,binary,base64}, --output-format {character,binary,base64}
                         Output format can be character, binary, or base64
+    -m MODULUS, --modulus MODULUS
+                        Modulus. Default is 256.
     -v, --verbose         Enables verbose output
     -i INPUT_FILE, --input-file INPUT_FILE
                         Read INPUT from an input file
@@ -85,6 +81,8 @@ Optional arguments:
                         Input format can be character, binary, or base64
     -of {character,binary,base64}, --output-format {character,binary,base64}
                         Output format can be character, binary, or base64
+    -m MODULUS, --modulus MODULUS
+                        Modulus. Default is 256.
     -v, --verbose         Enables verbose output
     -i INPUT_FILE, --input-file INPUT_FILE
                         Read INPUT from an input file
@@ -163,3 +161,55 @@ Optional arguments:
                         for each byte of input and Shannon entropy for input.
                         Does NOT include index of coincidence. Equivalent to
                         -cpmae.
+
+# Inversion
+
+    Inverts elements modulo a modulus
+
+Usage: inversion.py [-h] [-i] [-m MODULUS] [-v] INPUT
+
+Required arguments:
+
+    INPUT                 Integer input value of which to calculate inverse. Required.
+
+Optional arguments:
+
+    -h, --help            show this help message and exit
+    -i, --mutiplicative-inverse
+                        Calculate multiplicative inverse of INPUT modulo
+                        MODULUS
+    -m MODULUS, --modulus MODULUS
+                        Modulus. Default is 256.
+    -v, --verbose         Enables verbose output
+
+# Maitre D
+
+A matrix variant calculator within modulo MODULUS
+
+Usage: maitred.py [-h] [-d] [-id] [-mi] [-c] [-a] [-i] [-all] [-v]
+                  [-m MODULUS]
+                  [INPUT]
+
+Required arguments:
+
+    INPUT                 Input matrix of integers. The matrix must be square.
+                        For example a 2 X 2 matrix could be 1, 2, 3, 4
+
+Optional arguments:
+
+    -h, --help            show this help message and exit
+    -d, --determinant     Calculate the determinant of the matrix modulo
+                        MODULUS. Answer will be in Z-MODULUS.
+    -id, --inverse-determinant
+                        Calculate the inverse of the determinant of the matrix
+                        modulo MODULUS. Answer will be in Z-MODULUS.
+    -mi, --minors         Calculate the minors of the matrix modulo MODULUS
+    -c, --cofactors       Calculate the cofactors of the matrix modulo MODULUS
+    -a, --adjunct         Calculate the adjunct of the matrix modulo MODULUS
+    -i, --inverse         Calculate the inverse of the matrix modulo MODULUS
+    -all, --all           Calculate the determinant, inverse determinant,
+                        adjunct and inverse of the matrix modulo MODULUS. Same
+                        as -id -dai
+    -v, --verbose         Enables verbose output
+    -m MODULUS, --modulus MODULUS
+                        Modulus. Default is 256.

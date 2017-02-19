@@ -19,7 +19,7 @@ def get_multiplicative_inverse(a, n):
 
 if __name__ == '__main__':
 
-    lArgParser = argparse.ArgumentParser(description='Inversion: inverts elements modulo a modulus')
+    lArgParser = argparse.ArgumentParser(description='Inversion: inverts elements modulo MODULUS')
     lArgParser.add_argument('-i', '--mutiplicative-inverse', help='Calculate multiplicative inverse of INPUT modulo MODULUS', action='store_true')
     lArgParser.add_argument('-m', '--modulus', help='Modulus. Default is 256.', action='store', default=256, type=int)
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')

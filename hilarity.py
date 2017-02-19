@@ -120,7 +120,7 @@ def key_is_involutary(pKey: bytearray, pModulus: int) -> bool:
 
 if __name__ == '__main__':
 
-    lArgParser = argparse.ArgumentParser()
+    lArgParser = argparse.ArgumentParser(description='Hilarity: An implementation of the Hill cipher system')
     lEncryptionActionGroup = lArgParser.add_mutually_exclusive_group(required=True)
     lEncryptionActionGroup.add_argument('-e', '--encrypt', help='Encrypt INPUT. This option requires a KEY.', action='store_true')
     lEncryptionActionGroup.add_argument('-d', '--decrypt', help='Decrypt INPUT. This option requires a KEY or BRUTEFORCE flag.', action='store_true')

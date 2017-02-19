@@ -153,7 +153,7 @@ def get_inverse_matrix(pMatrix: bytearray, pModulus: int) -> bytearray:
 
 if __name__ == '__main__':
 
-    lArgParser = argparse.ArgumentParser()
+    lArgParser = argparse.ArgumentParser(description='Maitre D: A matrix variant calculator within modulo MODULUS')
     lArgParser.add_argument('-d', '--determinant', help='Calculate the determinant of the matrix modulo MODULUS. Answer will be in Z-MODULUS.', action='store_true')
     lArgParser.add_argument('-id', '--inverse-determinant', help='Calculate the inverse of the determinant of the matrix modulo MODULUS. Answer will be in Z-MODULUS.', action='store_true')
     lArgParser.add_argument('-mi', '--minors', help='Calculate the minors of the matrix modulo MODULUS', action='store_true')

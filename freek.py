@@ -148,7 +148,7 @@ def print_entropy(pInput: bytearray) -> None:
 
 if __name__ == '__main__':
 
-    lArgParser = argparse.ArgumentParser()
+    lArgParser = argparse.ArgumentParser(description='Freek: An implementation of a frequency analyzer and code breaker')
     lOutputOptions = lArgParser.add_argument_group(title="Output Options", description="Choose the type(s) of output to display")
     lOutputOptions.add_argument('-c', '--show-count', help='Show count for each byte of input', action='store_true')
     lOutputOptions.add_argument('-p', '--show-percent', help='Show percent representation for each byte of input', action='store_true')

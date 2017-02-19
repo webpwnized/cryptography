@@ -203,7 +203,8 @@ Optional arguments:
     -id, --inverse-determinant
                         Calculate the inverse of the determinant of the matrix
                         modulo MODULUS. Answer will be in Z-MODULUS.
-    -t, --transpose       Calculate the transpose of the matrix modulo MODULUS    -mi, --minors         Calculate the minors of the matrix modulo MODULUS
+    -t, --transpose       Calculate the transpose of the matrix modulo MODULUS 
+    -mi, --minors         Calculate the minors of the matrix modulo MODULUS
     -c, --cofactors       Calculate the cofactors of the matrix modulo MODULUS
     -a, --adjunct         Calculate the adjunct of the matrix modulo MODULUS
     -i, --inverse         Calculate the inverse of the matrix modulo MODULUS

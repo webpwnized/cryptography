@@ -1,19 +1,18 @@
 import argparse, base64, sys
 
-MODULUS = 256
 
 def get_involutary_keys(pRelativePrimes: list, pModulus: int) -> list:
 
     lInvolutaryKeys = []
     for lRelativePrime in lRelativePrimes:
         # if a**2 = 1 (mod m) and either b = 0 or a = -1 (mod m), then key is involutary
-        if ((lRelativePrime ** 2) % MODULUS == 1):
+        if ((lRelativePrime ** 2) % pModulus == 1):
             # Same as saying lRelativePrime (mod m) == -1 (mod m)
-            if (lRelativePrime % MODULUS) == (MODULUS - 1):
-                lInvolutaryKeys.append([lRelativePrime, "Any b in 0-{}".format(MODULUS)])
+            if (lRelativePrime % pModulus) == (pModulus - 1):
+                lInvolutaryKeys.append([lRelativePrime, "Any b in 0-{}".format(pModulus)])
             else:
-                for lAdditiveKeyParameter in range(0, MODULUS):
-                    if (lAdditiveKeyParameter * (lRelativePrime + 1)) % MODULUS == 0:
+                for lAdditiveKeyParameter in range(0, pModulus):
+                    if (lAdditiveKeyParameter * (lRelativePrime + 1)) % pModulus == 0:
                         lInvolutaryKeys.append([lRelativePrime, lAdditiveKeyParameter])
     return lInvolutaryKeys
 
@@ -21,7 +20,7 @@ def get_involutary_keys(pRelativePrimes: list, pModulus: int) -> list:
 def get_relative_primes(pModulus: int) -> list:
     lRelativePrimes = []
     for i in range(1, pModulus):
-        if gcd(i, pModulus) == 1:
+        if get_gcd(i, pModulus) == 1:
             lRelativePrimes.append(i)
     return lRelativePrimes
 
@@ -86,21 +85,22 @@ def get_prime_factors(n: int) -> list:
     return lPrimeFactors
 
 
-def gcd(x: int, y: int) -> int:
-    if y > x:
+def get_gcd(x: int, y: int) -> int:
+
+    if y > x and x != 0:
         #Swap the arguments
-        return gcd(y, x)
+        return get_gcd(y, x)
 
     if x % y == 0:
-        #y divides a evenly so y is gcd(x, y)
+        #y divides x evenly so y is gcd(x, y)
         return y
 
     # We can make calculating GCD easier.
     # The GCD of a,b is the same as the GCD of a and the remainder of dividing a by b
-    return gcd(y, x % y)
+    return get_gcd(y, x % y)
 
 
-def key_is_involutary(pKey: bytearray) -> bool:
+def key_is_involutary(pKey: bytearray, pModulus: int) -> bool:
     # Given e(x) = (x + k) % n and d(x) = (x - k) % n
     # Involutary key means e(d(x)) = e(e(x)) = x (mod n)
     # e(e(x)) => a(ax + b) + b = x (mod n) => a^2(x) + ab + b = x (mod n)
@@ -109,7 +109,7 @@ def key_is_involutary(pKey: bytearray) -> bool:
     # Note: b(a+1) = 0 (mod n) when b = 0 or when a = -1 (mod n)
     a = pKey[0]
     b = pKey[1]
-    return (((a**2) % MODULUS) == 1) and ((b * (a + 1)) % MODULUS) == 0
+    return (((a**2) % pModulus) == 1) and ((b * (a + 1)) % pModulus) == 0
 
 
 def key_is_trivial(pKey: bytearray) -> bool:
@@ -120,40 +120,41 @@ def key_is_trivial(pKey: bytearray) -> bool:
     return a == 1 and b == 0
 
 
-def do_encrypt(pByte: int, pKey: bytearray) -> int:
-    #e(x) = (x + k) % n
+def do_encrypt(pByte: int, pKey: bytearray, pModulus: int) -> int:
+    #e(x) = (ax + b) % n
     a = pKey[0]
     b = pKey[1]
-    return (a * pByte + b) % MODULUS
+    return (a * pByte + b) % pModulus
 
 
-def do_decrypt(pByte: int, pa: int, pb: int) -> int:
-    #d(x) = (x - k) % n
-    return (pa * (pByte - pb)) % MODULUS
+def do_decrypt(pByte: int, pInverseA: int, pB: int, pModulus: int) -> int:
+    #d(x) =  a^-1(x - b) % n
+    return (pInverseA * (pByte - pB)) % pModulus
 
 
-def encrypt(pPlaintextBytes: bytearray, pKey: bytearray) -> bytearray:
+def encrypt(pPlaintextBytes: bytearray, pKey: bytearray, pModulus: int) -> bytearray:
     lEncryptedBytes = bytearray()
-    lEncryptedBytes.extend(map(lambda x: do_encrypt(x, pKey), pPlaintextBytes))
+    lEncryptedBytes.extend(map(lambda x: do_encrypt(x, pKey, pModulus), pPlaintextBytes))
     return lEncryptedBytes
 
 
-def decrypt(pCiphertextBytes: bytearray, pa: int, pb: int) -> bytearray:
+def decrypt(pCiphertextBytes: bytearray, pa: int, pb: int, pModulus: int) -> bytearray:
     lDecryptedBytes = bytearray()
-    lDecryptedBytes.extend(map(lambda x: do_decrypt(x, pa, pb), pCiphertextBytes))
+    lDecryptedBytes.extend(map(lambda x: do_decrypt(x, pa, pb, pModulus), pCiphertextBytes))
     return lDecryptedBytes
 
 
-def print_plaintext(pInput: bytearray, pKey: bytearray, pVerbose: bool, pDecodedKey: str) -> None:
+def print_plaintext(pInput: bytearray, pKey: bytearray, pModulus:int, pVerbose: bool, pDecodedKey: str) -> None:
 
     a = pKey[0]
     b = pKey[1]
 
-    inverse_a = get_multiplicative_inverse(a, MODULUS)
-    lDecryptedInput = decrypt(pInput, inverse_a, b)
+    lInverseA = get_multiplicative_inverse(a, pModulus)
+    lDecryptedInput = decrypt(pInput, lInverseA, b, pModulus)
 
     if pVerbose:
         print('Key: {}'.format(pDecodedKey))
+        print('Modulus: {}'.format(pModulus))
         print('Cipher Output: ', end='')
 
     sys.stdout.flush()
@@ -168,9 +169,9 @@ def is_unprintable(pBytes: bytearray) -> bool:
     return False
 
 
-def print_ciphertext(pInput: bytearray, pKey: bytearray, pVerbose: bool, pOutputFormat: str, pDecodedKey: str) -> None:
+def print_ciphertext(pInput: bytearray, pKey: bytearray, pModulus:int, pVerbose: bool, pOutputFormat: str, pDecodedKey: str) -> None:
 
-    lEncryptedInput = encrypt(pInput, pKey)
+    lEncryptedInput = encrypt(pInput, pKey, pModulus)
 
     if pOutputFormat == 'character' and is_unprintable(lEncryptedInput): pOutputFormat = 'base64'
 
@@ -179,6 +180,7 @@ def print_ciphertext(pInput: bytearray, pKey: bytearray, pVerbose: bool, pOutput
 
     if pVerbose:
         print('Key: {}'.format(pDecodedKey))
+        print('Modulus: {}'.format(pModulus))
         print('Output Format: {}'.format(pOutputFormat))
         print('Cipher Output: ', end='')
 
@@ -196,13 +198,16 @@ if __name__ == '__main__':
     lEncryptionActionGroup.add_argument('-d', '--decrypt', help='Decrypt INPUT. This option requires a KEY or BRUTEFORCE flag.', action='store_true')
     lKeyOrBruteforceActionGroup = lArgParser.add_mutually_exclusive_group(required=True)
     lKeyOrBruteforceActionGroup.add_argument('-k', '--key', help='Encryption/Decryption key in a,b format', type=str, action='store')
-    lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
-    lArgParser.add_argument('-of', '--output-format', help='Output format can be character, binary, or base64. If input format provided, but output format is not provided, output format defaults to match input format.', choices=['character', 'binary', 'base64'], action='store')
+    lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store', type=str)
+    lArgParser.add_argument('-of', '--output-format', help='Output format can be character, binary, or base64. If input format provided, but output format is not provided, output format defaults to match input format.', choices=['character', 'binary', 'base64'], action='store', type=str)
+    lArgParser.add_argument('-m', '--modulus', help='Modulus. Default is 256.', action='store', default=256, type=int)
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
     lInputSourceGroup = lArgParser.add_mutually_exclusive_group(required=True)
-    lInputSourceGroup.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store')
+    lInputSourceGroup.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store', type=str)
     lInputSourceGroup.add_argument('INPUT', nargs='?', help='Input value to encrypt/decrypt', type=str, action='store')
     lArgs = lArgParser.parse_args()
+
+    lModulus = lArgs.modulus
 
     if (lArgs.encrypt or lArgs.decrypt) and lArgs.key is None:
         lArgParser.error('If -e/--encrypt or -d/--decrypt selected, -k/--key is required')
@@ -214,11 +219,11 @@ if __name__ == '__main__':
                 if type(lSubkey) != int:
                     raise Exception('Keys not of type integer')
 
-            if abs(lKey[0]) >= MODULUS:
-                lKey[0] = lKey[0] % MODULUS
+            if abs(lKey[0]) >= lModulus:
+                lKey[0] = lKey[0] % lModulus
 
-            if abs(lKey[1]) >= MODULUS:
-                lKey[1] = lKey[1] % MODULUS
+            if abs(lKey[1]) >= lModulus:
+                lKey[1] = lKey[1] % lModulus
         except:
             lArgParser.error("Affine cipher requires two keys of type integer. Input key in a,b format. i.e. --key=1,1")
 
@@ -246,23 +251,27 @@ if __name__ == '__main__':
             if key_is_trivial(lKey):
                 print('[*] Warning: Key {} is trivial'.format(lArgs.key))
 
-            if key_is_involutary(lKey):
+            if key_is_involutary(lKey, lModulus):
                 print('[*] Warning: Key {} is involutary'.format(lArgs.key))
         #endif
 
         a = lKey[0]
         b = lKey[1]
 
-        lGCD = gcd(a, MODULUS)
+        lGCD = get_gcd(a, lModulus)
         if lGCD != 1:
-            lNumberOfInverses = euler_totient_function(MODULUS)
-            lRelativePrimes = get_relative_primes(MODULUS)
-            lNumberPossibleKeys = lNumberOfInverses * MODULUS
-            lInvolutaryKeys = get_involutary_keys(lRelativePrimes, MODULUS)
-            lArgParser.error("Affine cipher requires the multiplicative key parameter {} be relatively prime to the modulus {}. The GCD of {} and {} is {} rather than 1. Please choose a multiplicative key parameter relatively prime to {}. There are {} integers relatively prime to {}. You may pick from {}. Since the value of the additive key parameter can be any value between 0 and {} ({} possible values), there are {} * {} = {} possible keys. Watch out for involutary keys {}.".format(a, MODULUS, a, MODULUS, lGCD, MODULUS, lNumberOfInverses, MODULUS, lRelativePrimes, MODULUS - 1, MODULUS, lNumberOfInverses, MODULUS, lNumberPossibleKeys, lInvolutaryKeys))
+            lNumberOfInverses = euler_totient_function(lModulus)
+            lRelativePrimes = get_relative_primes(lModulus)
+            lNumberPossibleKeys = lNumberOfInverses * lModulus
+            lInvolutaryKeys = get_involutary_keys(lRelativePrimes, lModulus)
+            lArgParser.error("Affine cipher requires the multiplicative key parameter {} be relatively prime to the modulus {}. "
+                             "The GCD of {} and {} is {} rather than 1. Please choose a multiplicative key parameter relatively prime to {}. "
+                             "There are {} integers relatively prime to {}. You may pick from {}. "
+                             "Since the value of the additive key parameter can be any value between 0 and {} ({} possible values), there are {} * {} = {} possible keys. "
+                             "Watch out for involutary keys {}.".format(a, lModulus, a, lModulus, lGCD, lModulus, lNumberOfInverses, lModulus, lRelativePrimes, lModulus - 1, lModulus, lNumberOfInverses, lModulus, lNumberPossibleKeys, lInvolutaryKeys))
 
-        print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format, lArgs.key)
+        print_ciphertext(lInput, lKey, lModulus, lArgs.verbose, lArgs.output_format, lArgs.key)
 
     elif lArgs.decrypt:
-        print_plaintext(lInput, lKey, lArgs.verbose, lArgs.key)
+        print_plaintext(lInput, lKey, lModulus, lArgs.verbose, lArgs.key)
     #endif

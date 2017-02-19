@@ -1,11 +1,11 @@
-import argparse
+import argparse, math
 
 
 def derive_key(lKey: str) -> bytearray:
     lKeyMatrix = bytearray()
 
     # split on comma into bytearray
-    lKeyMatrix = bytearray(map(int, lArgs.key.split(',')))
+    lKeyMatrix = bytearray(map(int, lKey.split(',')))
 
     for lSubkey in lKeyMatrix:
         if type(lSubkey) != int:

@@ -1,62 +1,56 @@
 import argparse, base64, sys
 
-MODULUS = 256
+
+def do_derive_key(pLetter: str, pModulus:int) -> int:
+    return (ord(pLetter.lower()) - 97) % pModulus
 
 
-def do_derive_key(pLetter: str) -> int:
-    return (ord(pLetter.lower()) - 97) % MODULUS
-
-
-def derive_key(pKey: str) -> bytearray:
+def derive_key(pKey: str, pModulus:int) -> bytearray:
     lKey = bytearray()
-    lKey.extend(map(lambda x: do_derive_key(x), pKey))
+    lKey.extend(map(lambda x: do_derive_key(x, pModulus), pKey))
     return lKey
 
 
-def key_is_involutary(pKey: bytearray) -> bool:
-    # Given e(x) = (x + k) % n and d(x) = (x - k) % n for all bytes k in pKey
+def key_is_involutary(pKey: bytearray, pModulus:int) -> bool:
     # Involutary key means e(d(x)) = e(e(x)) = x (mod n)
-    # For all bytes k in pKey: e(e(x)) = x mod n => ((x + k) + k) = x mod n => 2k = 0 mod n => k = 0 or k = n/2 mod n
-    # If any one byte is not involutary, the key is not involutary
-    for lByte in pKey:
-        if ((2 * lByte) % MODULUS) != 0:
-            return False
-    return True
+    # For Vigenere cipher, involutary keys have maximum cycle size of 2
+    # TODO
+    return False
 
 
-def key_is_trivial(pKey: bytearray) -> bool:
+def key_is_trivial(pKey: bytearray, pModulus:int) -> bool:
     # Given e(x) = (x + k) % n and d(x) = (x - k) % n
     # Trival key means e(x) = x (mod n)
     # If every byte in pKey is 0, then pKey is trivial
     for lByte in pKey:
-        if lByte != 0:
+        if (lByte % pModulus) != 0:
             return False
     return True
 
 
-def do_encrypt(pByte: int, pKey: int) -> int:
+def do_encrypt(pByte: int, pKey: int, pModulus:int) -> int:
     #e(x) = (x + k) % n
-    return (pByte + pKey) % MODULUS
+    return (pByte + pKey) % pModulus
 
 
-def do_decrypt(pByte: int, pKey: int) -> int:
+def do_decrypt(pByte: int, pKey: int, pModulus:int) -> int:
     #d(x) = (x - k) % n
-    return (pByte - pKey) % MODULUS
+    return (pByte - pKey) % pModulus
 
 
-def encrypt(pPlaintextBytes: bytearray, pKey: bytearray) -> bytearray:
+def encrypt(pPlaintextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytearray:
     lEncryptedBytes = bytearray()
     lLengthKey = len(pKey)
     for lIndex, lPlaintextByte in enumerate(pPlaintextBytes):
-        lEncryptedBytes.append(do_encrypt(lPlaintextByte, pKey[(lIndex % lLengthKey)]))
+        lEncryptedBytes.append(do_encrypt(lPlaintextByte, pKey[(lIndex % lLengthKey)], pModulus))
     return lEncryptedBytes
 
 
-def decrypt(pCiphertextBytes: bytearray, pKey: int) -> bytearray:
+def decrypt(pCiphertextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytearray:
     lDecryptedBytes = bytearray()
     lLengthKey = len(pKey)
     for lIndex, lCiphertextByte in enumerate(pCiphertextBytes):
-        lDecryptedBytes.append(do_decrypt(lCiphertextByte, pKey[(lIndex % lLengthKey)]))
+        lDecryptedBytes.append(do_decrypt(lCiphertextByte, pKey[lIndex % lLengthKey], pModulus))
     return lDecryptedBytes
 
 
@@ -66,13 +60,14 @@ def is_unprintable(pBytes: bytearray) -> bool:
     return False
 
 
-def print_plaintext(pInput: bytearray, pKey: int, pVerbose: bool, pUnmodifiedKey: str) -> None:
+def print_plaintext(pInput: bytearray, pKey: bytearray, pModulus:int, pVerbose: bool, pUnmodifiedKey: str) -> None:
 
-    lDecryptedInput = decrypt(pInput, pKey)
+    lDecryptedInput = decrypt(pInput, pKey, pModulus)
 
     if pVerbose:
         print('Unmodified Key: {}'.format(pUnmodifiedKey))
         print('Derived Key: {}'.format(list(pKey)))
+        print('Modulus: {}'.format(pModulus))
         print('Plain Output: ', end='')
 
     sys.stdout.flush()
@@ -81,9 +76,9 @@ def print_plaintext(pInput: bytearray, pKey: int, pVerbose: bool, pUnmodifiedKey
     if pVerbose: print()
 
 
-def print_ciphertext(pInput: bytearray, pKey: bytearray, pVerbose: bool, pOutputFormat: str, pUnmodifiedKey: str) -> None:
+def print_ciphertext(pInput: bytearray, pKey: bytearray, pModulus:int, pVerbose: bool, pOutputFormat: str, pUnmodifiedKey: str) -> None:
 
-    lEncryptedInput = encrypt(pInput, pKey)
+    lEncryptedInput = encrypt(pInput, pKey, pModulus)
 
     if pOutputFormat == 'character' and is_unprintable(lEncryptedInput):
         pOutputFormat = 'base64'
@@ -94,6 +89,7 @@ def print_ciphertext(pInput: bytearray, pKey: bytearray, pVerbose: bool, pOutput
     if pVerbose:
         print('Unmodified Key: {}'.format(pUnmodifiedKey))
         print('Derived Key: {}'.format(list(pKey)))
+        print('Modulus: {}'.format(pModulus))
         print('Output Format: {}'.format(pOutputFormat))
         print('Cipher Output: ', end='')
     # end if
@@ -114,17 +110,20 @@ if __name__ == '__main__':
     lKeyOrBruteforceActionGroup.add_argument('-k', '--key', help='Encryption/Decryption key', type=str, action='store')
     lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
     lArgParser.add_argument('-of', '--output-format', help='Output format can be character, binary, or base64. If input format provided, but output format is not provided, output format defaults to match input format.', choices=['character', 'binary', 'base64'], action='store')
+    lArgParser.add_argument('-m', '--modulus', help='Modulus. Default is 256.', action='store', default=256, type=int)
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
     lInputSourceGroup = lArgParser.add_mutually_exclusive_group(required=True)
     lInputSourceGroup.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store')
     lInputSourceGroup.add_argument('INPUT', nargs='?', help='Input value to encrypt/decrypt', type=str, action='store')
     lArgs = lArgParser.parse_args()
 
+    lModulus = lArgs.modulus
+
     if (lArgs.encrypt or lArgs.decrypt) and lArgs.key is None:
         lArgParser.error('If -e/--encrypt or -d/--decrypt selected, -k/--key is required')
 
     if lArgs.key:
-        lKey = derive_key(lArgs.key)
+        lKey = derive_key(lArgs.key, lModulus)
 
     if lArgs.input_file:
         if lArgs.input_format == 'base64':
@@ -147,17 +146,17 @@ if __name__ == '__main__':
     if lArgs.encrypt:
 
         if lArgs.verbose:
-            if key_is_trivial(lKey):
+            if key_is_trivial(lKey, lModulus):
                 print('[*] Warning: Key {} is trivial'.format(lArgs.key))
 
-            if key_is_involutary(lKey):
+            if key_is_involutary(lKey, lModulus):
                 print('[*] Warning: Key {} is involutary'.format(lArgs.key))
         #endif
 
-        print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format, lArgs.key)
+        print_ciphertext(lInput, lKey, lModulus, lArgs.verbose, lArgs.output_format, lArgs.key)
 
     elif lArgs.decrypt:
 
-        print_plaintext(lInput, lKey, lArgs.verbose, lArgs.key)
+        print_plaintext(lInput, lKey, lModulus, lArgs.verbose, lArgs.key)
 
     #endif

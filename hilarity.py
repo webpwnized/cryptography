@@ -1,11 +1,11 @@
 import argparse, math
 
 
-def derive_key(lKey: str) -> bytearray:
+def derive_key(lKey: str, pModulus: int) -> bytearray:
     lKeyMatrix = bytearray()
 
     # split on comma into bytearray
-    lKeyMatrix = bytearray(map(int, lArgs.key.split(',')))
+    lKeyMatrix = bytearray(map(lambda x: get_int_modulo_n_in_zn(int(x), pModulus), lKey.split(',')))
 
     for lSubkey in lKeyMatrix:
         if type(lSubkey) != int:
@@ -19,7 +19,7 @@ def derive_key(lKey: str) -> bytearray:
 
 
 # return (g, x, y) a*x + b*y = gcd(x, y)
-def extended_euclidian_algorithm(a, b):
+def extended_euclidian_algorithm(a:int, b:int) -> tuple:
     if a == 0:
         return (b, 0, 1)
     else:
@@ -28,13 +28,13 @@ def extended_euclidian_algorithm(a, b):
 
 
 # x = mulinv(b) mod n, (x * b) % n == 1
-def get_multiplicative_inverse(a, n):
+def get_multiplicative_inverse(a:int, n:int) -> int:
     g, x, _ = extended_euclidian_algorithm(a, n)
     if g == 1:
         return x % n
 
 
-def get_adjunct(pMatrix: bytearray, pModulus: list) -> bytearray:
+def get_adjunct(pMatrix: bytearray, pModulus: int) -> bytearray:
 
     lAdjunct = bytearray()
     lSizeOfMatrix = len(pMatrix)
@@ -56,16 +56,16 @@ def get_adjunct(pMatrix: bytearray, pModulus: list) -> bytearray:
     return lAdjunct
 
 
-def get_determinant(pKey: bytearray, pModulus: int) -> int:
+def get_determinant(pMatrix: bytearray, pModulus: int) -> int:
 
-    lSizeOfMatrix = len(pKey)
+    lSizeOfMatrix = len(pMatrix)
     if lSizeOfMatrix != 4:
         raise Exception('I dont know how to do non-2x2 matrices yet')
 
-    a = pKey[0]
-    b = pKey[1]
-    c = pKey[2]
-    d = pKey[3]
+    a = pMatrix[0]
+    b = pMatrix[1]
+    c = pMatrix[2]
+    d = pMatrix[3]
 
     # Calculate determinant of matrix
     return ((a * d) - (b * c)) % pModulus
@@ -128,14 +128,15 @@ if __name__ == '__main__':
     lKeyOrBruteforceActionGroup.add_argument('-k', '--key', help='Encryption/Decryption key of integers in matrix format. The matrix must be square. For example a 2 X 2 matrix could be 1, 2, 3, 4', type=str, action='store')
     lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
     lArgParser.add_argument('-of', '--output-format', help='Output format can be character, binary, or base64. If input format provided, but output format is not provided, output format defaults to match input format.', choices=['character', 'binary', 'base64'], action='store')
-    lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
     lArgParser.add_argument('-m', '--modulus', help='Modulus. Default is 256.', action='store', default=256, type=int)
+    lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
     lInputSourceGroup = lArgParser.add_mutually_exclusive_group(required=True)
     lInputSourceGroup.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store')
     lInputSourceGroup.add_argument('INPUT', nargs='?', help='Input value to encrypt/decrypt', type=str, action='store')
     lArgs = lArgParser.parse_args()
 
-    lKey = derive_key(lArgs.key)
+    lModulus = lArgs.modulus
+    lKey = derive_key(lArgs.key, lModulus)
 
     if lArgs.encrypt:
 

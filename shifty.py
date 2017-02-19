@@ -1,48 +1,48 @@
 import argparse, base64, sys
 
-MODULUS = 256
 
-def key_is_involutary(pKey: int) -> bool:
+def key_is_involutary(pKey: int, pModulus:int) -> bool:
     # Given e(x) = (x + k) % n and d(x) = (x - k) % n
     # Involutary key means e(d(x)) = e(e(x)) = x (mod n)
     # e(e(x)) = x mod n => ((x + k) + k) = x mod n => 2k = 0 mod n => k = 0 or k = n/2 mod n
-    return ((2 * pKey) % MODULUS) == 0
+    return ((2 * pKey) % pModulus) == 0
 
 
-def key_is_trivial(pKey: int) -> bool:
+def key_is_trivial(pKey: int, pModulus:int) -> bool:
     # Given e(x) = (x + k) % n and d(x) = (x - k) % n
     # Trival key means e(x) = x (mod n)
-    return (pKey % MODULUS) == 0
+    return (pKey % pModulus) == 0
 
 
-def do_encrypt(pByte: int, pKey: int) -> int:
+def do_encrypt(pByte: int, pKey: int, pModulus:int) -> int:
     #e(x) = (x + k) % n
-    return (pByte + pKey) % MODULUS
+    return (pByte + pKey) % pModulus
 
 
-def do_decrypt(pByte: int, pKey: int) -> int:
+def do_decrypt(pByte: int, pKey: int, pModulus:int) -> int:
     #d(x) = (x - k) % n
-    return (pByte - pKey) % MODULUS
+    return (pByte - pKey) % pModulus
 
 
-def encrypt(pPlaintextBytes: bytearray, pKey: int) -> bytearray:
+def encrypt(pPlaintextBytes: bytearray, pKey: int, pModulus:int) -> bytearray:
     lEncryptedBytes = bytearray()
-    lEncryptedBytes.extend(map(lambda x: do_encrypt(x, pKey), pPlaintextBytes))
+    lEncryptedBytes.extend(map(lambda x: do_encrypt(x, pKey, pModulus), pPlaintextBytes))
     return lEncryptedBytes
 
 
-def decrypt(pCiphertextBytes: bytearray, pKey: int) -> bytearray:
+def decrypt(pCiphertextBytes: bytearray, pKey: int, pModulus:int) -> bytearray:
     lDecryptedBytes = bytearray()
-    lDecryptedBytes.extend(map(lambda x: do_decrypt(x, pKey), pCiphertextBytes))
+    lDecryptedBytes.extend(map(lambda x: do_decrypt(x, pKey, pModulus), pCiphertextBytes))
     return lDecryptedBytes
 
 
-def print_plaintext(pInput: bytearray, pKey: int, pVerbose: bool) -> None:
+def print_plaintext(pInput: bytearray, pKey: int, pModulus:int, pVerbose: bool) -> None:
 
-    lDecryptedInput = decrypt(pInput, pKey)
+    lDecryptedInput = decrypt(pInput, pKey, pModulus)
 
     if pVerbose:
         print('Key: {}'.format(pKey))
+        print('Modulus: {}'.format(pModulus))
         print('Cipher Output: ', end='')
 
     sys.stdout.flush()
@@ -57,9 +57,9 @@ def is_unprintable(pBytes: bytearray) -> bool:
     return False
 
 
-def print_ciphertext(pInput: bytearray, pKey: int, pVerbose: bool, pOutputFormat: str) -> None:
+def print_ciphertext(pInput: bytearray, pKey: int, pModulus:int, pVerbose: bool, pOutputFormat: str) -> None:
 
-    lEncryptedInput = encrypt(pInput, pKey)
+    lEncryptedInput = encrypt(pInput, pKey, pModulus)
 
     if pOutputFormat == 'character' and is_unprintable(lEncryptedInput): pOutputFormat = 'base64'
 
@@ -68,6 +68,7 @@ def print_ciphertext(pInput: bytearray, pKey: int, pVerbose: bool, pOutputFormat
 
     if pVerbose:
         print('Key: {}'.format(pKey))
+        print('Modulus: {}'.format(pModulus))
         print('Output Format: {}'.format(pOutputFormat))
         print('Cipher Output: ', end='')
 
@@ -77,10 +78,10 @@ def print_ciphertext(pInput: bytearray, pKey: int, pVerbose: bool, pOutputFormat
     if pVerbose: print()
 
 
-def bruteforce_plaintext(pInput: bytearray, pVerbose: bool) -> None:
-    for i in range(1, 256):
+def bruteforce_plaintext(pInput: bytearray, pModulus:int, pVerbose: bool) -> None:
+    for i in range(1, pModulus):
         print(i,'-> ',end='')
-        print_plaintext(pInput, i, pVerbose)
+        print_plaintext(pInput, i, pModulus, pVerbose)
         if not pVerbose: print()
 
 
@@ -95,11 +96,14 @@ if __name__ == '__main__':
     lKeyOrBruteforceActionGroup.add_argument('-b', '--bruteforce', help='Rather than decrypt with KEY, try to brute force the plaintext.', action='store_true')
     lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
     lArgParser.add_argument('-of', '--output-format', help='Output format can be character, binary, or base64. If input format provided, but output format is not provided, output format defaults to match input format.', choices=['character', 'binary', 'base64'], action='store')
+    lArgParser.add_argument('-m', '--modulus', help='Modulus. Default is 256.', action='store', default=256, type=int)
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
     lInputSourceGroup = lArgParser.add_mutually_exclusive_group(required=True)
     lInputSourceGroup.add_argument('-i', '--input-file', help='Read INPUT from an input file', action='store')
     lInputSourceGroup.add_argument('INPUT', nargs='?', help='Input value to encrypt/decrypt', type=str, action='store')
     lArgs = lArgParser.parse_args()
+
+    lModulus = lArgs.modulus
 
     if lArgs.encrypt and lArgs.key is None:
         lArgParser.error('If -e/--encrypt selected, -k/--key is required')
@@ -128,20 +132,20 @@ if __name__ == '__main__':
     if lArgs.encrypt:
 
         if lArgs.verbose:
-            if key_is_trivial(lArgs.key):
+            if key_is_trivial(lArgs.key, lModulus):
                 print('[*] Warning: Key {} is trivial'.format(lArgs.key))
 
-            if key_is_involutary(lArgs.key):
+            if key_is_involutary(lArgs.key, lModulus):
                 print('[*] Warning: Key {} is involutary'.format(lArgs.key))
         #endif
 
-        print_ciphertext(lInput, lArgs.key, lArgs.verbose, lArgs.output_format)
+        print_ciphertext(lInput, lArgs.key, lModulus, lArgs.verbose, lArgs.output_format)
 
     elif lArgs.decrypt:
         if lArgs.bruteforce:
             # Test Case: BEEAKFYDJXUQYHYJIQRYHTYJIQFBQDUYJIIKFUHCQD
-            bruteforce_plaintext(lInput, lArgs.verbose)
+            bruteforce_plaintext(lInput, lModulus, lArgs.verbose)
         else:
-            print_plaintext(lInput, lArgs.key, lArgs.verbose)
+            print_plaintext(lInput, lArgs.key, lModulus, lArgs.verbose)
         # endif
     #endif

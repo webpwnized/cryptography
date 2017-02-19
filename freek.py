@@ -74,7 +74,7 @@ def print_delta_index_of_coincidence(pInput: bytearray) -> None:
     # end for
 
 
-def print_byte_analysis(pByte: int, pByteCount: int, pTotalBytes: int, pShowCount: bool, pShowHistogram: bool, pShowASCII: bool, pShowPercent: bool, pShowGuesses: bool, pVerbose: bool) -> None:
+def print_byte_analysis(pByte: int, pByteCount: int, pTotalBytes: int, pShowCount: bool, pShowHistogram: bool, pShowASCII: bool, pShowPercent: bool, pVerbose: bool) -> None:
     SCALE_FACTOR = 20
     lPercent = pByteCount / pTotalBytes * 100
     lFrequencyBarLength = int(lPercent * SCALE_FACTOR)
@@ -107,10 +107,11 @@ def print_analysis(pInput: bytearray, pShowCount: bool, pShowHistogram: bool, pS
         for lByte, lByteCount in sorted(lByteCounts.items(), key=lambda x:x[1], reverse=True):
             if pVerbose or lByteCount:
                 if pShowGuesses and lAnalyzingMostPopularByte:
-                    # For JPEG we assume the mode of the plaintext is 0, so we guess the mode of the cipher text is offset by X bytes
-                    print('\nBest guess\tLowercase: ' + chr((lByte + 97) % MODULUS) + '\tUppercase: ' + chr((lByte + 65) % MODULUS) + '\tNumeric: ' + chr((lByte + 48) % MODULUS))
+                    # For JPEG we assu
+                    # me the mode of the plaintext is 0, so we guess the mode of the cipher text is offset by X bytes
+                    print('\nBest guess\tLowercase: ' + chr((lByte + 97) % MODULUS) + '\tUppercase: ' + chr((lByte + 65) % MODULUS) + '\tNumeric: ' + chr((lByte + 65) % MODULUS))
                     lAnalyzingMostPopularByte = False
-                print_byte_analysis(lByte, lByteCount, lTotalBytes, pShowCount, pShowHistogram, pShowASCII, pShowPercent, pShowGuesses, pVerbose)
+                print_byte_analysis(lByte, lByteCount, lTotalBytes, pShowCount, pShowHistogram, pShowASCII, pShowPercent, pVerbose)
             # end if
             lBytesPrinted += 1
             if lBytesPrinted > (pTopFrequencies - 1):
@@ -118,7 +119,7 @@ def print_analysis(pInput: bytearray, pShowCount: bool, pShowHistogram: bool, pS
     else:
         for lByte, lByteCount in lByteCounts.items():
             if pVerbose or lByteCount:
-                print_byte_analysis(lByte, lByteCount, lTotalBytes, pShowCount, pShowHistogram, pShowASCII, pShowPercent, pShowGuesses, pVerbose)
+                print_byte_analysis(lByte, lByteCount, lTotalBytes, pShowCount, pShowHistogram, pShowASCII, pShowPercent, pVerbose)
             # end if
     # end for
     print()

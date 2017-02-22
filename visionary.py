@@ -12,18 +12,22 @@ def derive_key(pKey: str, pModulus:int) -> bytearray:
 
 
 def key_is_involutary(pKey: bytearray, pModulus:int) -> bool:
-    # Involutary key means e(d(x)) = e(e(x)) = x (mod n)
-    # For Vigenere cipher, involutary keys have maximum cycle size of 2
-    # TODO
-    return False
+    # Involutary key means e(d(x)) = e(e(x)) = x (mod n).
+    # For any given byte, e(x) = x + k mod n so e(e(x)) = x (mod n) -> (x + k) + k = x (mod n)
+    # Therefore 2k = 0 (mod n)
+    # If for every byte in pKey, 2k = 0 (mod n), then pKey is involutary
+    for lByte in pKey:
+        if ((2* lByte) % pModulus) != 0:
+            return False
+    return True
 
 
 def key_is_trivial(pKey: bytearray, pModulus:int) -> bool:
     # Given e(x) = (x + k) % n and d(x) = (x - k) % n
     # Trival key means e(x) = x (mod n)
-    # If every byte in pKey is 0, then pKey is trivial
+    # If every byte in pKey is 0 (mod n), then pKey is trivial
     for lByte in pKey:
-        if (lByte % pModulus) != 0:
+        if lByte != 0:
             return False
     return True
 

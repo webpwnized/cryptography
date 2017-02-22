@@ -36,11 +36,56 @@ def invert_key(pKey: list) -> list:
     return lInvertedKey
 
 
-def key_is_involutary(pKey: list) -> bool:
+def get_permutation_cycles(pPermutation: list) -> list:
+
+    lKeyLength = len(pPermutation)
+
+    # Arbitrarily start at first byte in key
+    lStartPosition = 0
+    lCurrentPosition = 0
+    lKeyBytesChecked = []
+    lCurrentCycle = []
+    lCycles = []
+    # if value of current byte = position of current byte, then cycle is complete
+    for i in range(0, lKeyLength):
+        lCurrentCycle.append(pPermutation[lCurrentPosition])
+        lKeyBytesChecked.append(pPermutation[lCurrentPosition])
+        if pPermutation[lCurrentPosition] == lStartPosition:
+            lCycles.append(lCurrentCycle)
+            lCurrentCycle = []
+
+            j = 0
+            lNextPositionFound = False
+            while j < lKeyLength and not lNextPositionFound:
+                if pPermutation[j] not in lKeyBytesChecked:
+                    lCurrentPosition = j
+                    lStartPosition = j
+                    lNextPositionFound = True
+                j += 1
+                # end if
+            # end while j
+        else:
+            lCurrentPosition = pPermutation[lCurrentPosition]
+            if i == (lKeyLength - 1):
+                # Append last cycle
+                lCycles.append(lCurrentCycle)
+            # end if
+    #end for i
+
+    return lCycles
+
+
+def key_is_involutary(pCycles: list) -> bool:
     # Given e(x) = permuation(x)
     # Involutary key means e(d(x)) = e(e(x)) = x
     # Key is involutary if it contains only cycles of length 1 or 2
-    return False
+
+    for lCycle in pCycles:
+        if len(lCycle) > 2:
+            return False
+        # end if
+    # end for
+    return True
 
 
 def key_is_trivial(pKey: list) -> bool:
@@ -58,7 +103,11 @@ def encrypt(pPlaintextBytes: bytearray, pKey: list) -> bytearray:
     lEncryptedBytes = bytearray()
     lLengthKey = len(pKey)
     lLengthPlaintext = len(pPlaintextBytes)
-    lPadBytesNeeded = lLengthKey - (lLengthPlaintext % lLengthKey)
+    lLengthLastBlock = lLengthPlaintext % lLengthKey
+    if lLengthLastBlock > 0:
+        lPadBytesNeeded = lLengthKey - (lLengthPlaintext % lLengthKey)
+    else:
+        lPadBytesNeeded = 0
 
     if lPadBytesNeeded > 0:
         for i in range(0, lPadBytesNeeded):
@@ -196,13 +245,16 @@ if __name__ == '__main__':
     if lArgs.encrypt:
 
         if lArgs.verbose:
+
+            lCycles = get_permutation_cycles(lKey)
+            print("Cycles of Key: {}".format(lCycles))
+
             if key_is_trivial(lKey):
                 print('[*] Warning: Key {} is trivial'.format(lArgs.key))
 
-            # TODO
-            # if key_is_involutary(lKey):
-                # print('[*] Warning: Key {} is involutary'.format(lArgs.key))
-        #endif
+            if key_is_involutary(lCycles):
+                print('[*] Warning: Key {} is involutary'.format(lArgs.key))
+        # end if
 
         print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format)
 

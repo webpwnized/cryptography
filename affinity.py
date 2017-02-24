@@ -1,22 +1,6 @@
 import argparse, base64, sys
 
 
-def get_involutary_keys(pRelativePrimes: list, pModulus: int) -> list:
-
-    lInvolutaryKeys = []
-    for lRelativePrime in lRelativePrimes:
-        # if a**2 = 1 (mod m) and either b = 0 or a = -1 (mod m), then key is involutary
-        if ((lRelativePrime ** 2) % pModulus == 1):
-            # Same as saying lRelativePrime (mod m) == -1 (mod m)
-            if (lRelativePrime % pModulus) == (pModulus - 1):
-                lInvolutaryKeys.append([lRelativePrime, "Any b in 0-{}".format(pModulus)])
-            else:
-                for lAdditiveKeyParameter in range(0, pModulus):
-                    if (lAdditiveKeyParameter * (lRelativePrime + 1)) % pModulus == 0:
-                        lInvolutaryKeys.append([lRelativePrime, lAdditiveKeyParameter])
-    return lInvolutaryKeys
-
-
 def get_relative_primes(pModulus: int) -> list:
     lRelativePrimes = []
     for i in range(1, pModulus):
@@ -26,7 +10,7 @@ def get_relative_primes(pModulus: int) -> list:
 
 
 # return (g, x, y) a*x + b*y = gcd(x, y)
-def extended_euclidian_algorithm(a, b):
+def extended_euclidian_algorithm(a: int, b: int) -> tuple:
     if a == 0:
         return (b, 0, 1)
     else:
@@ -34,11 +18,11 @@ def extended_euclidian_algorithm(a, b):
         return (g, y - (b // a) * x, x)
 
 
-# x = mulinv(b) mod n, (x * b) % n == 1
-def get_multiplicative_inverse(a, n):
-    g, x, _ = extended_euclidian_algorithm(a, n)
+# x = mulinv(b) mod n, (x * b) % pModulus == 1
+def get_multiplicative_inverse(a: int, pModulus: int) -> int:
+    g, x, _ = extended_euclidian_algorithm(a, pModulus)
     if g == 1:
-        return x % n
+        return x % pModulus
 
 
 def euler_totient_function(pModulus: int) -> int:
@@ -67,11 +51,13 @@ def get_prime_factors(n: int) -> list:
 
     #Two is only even prime
     d = 2
+    # Count how many times n is divisible by 2
     while (n % d) == 0:
         lPrimeFactors.append(d)
         n //= d
 
     # Rest of primes are odd numbers. We go faster skipping even numbers
+    # We only need to check odd numbers up to square root of n
     d=3
     while d*d <= n:
         while (n % d) == 0:
@@ -98,6 +84,41 @@ def get_gcd(x: int, y: int) -> int:
     # We can make calculating GCD easier.
     # The GCD of a,b is the same as the GCD of a and the remainder of dividing a by b
     return get_gcd(y, x % y)
+
+def derive_key(lKeyString: str) -> bytearray:
+
+    lKey = bytearray(map(int, lKeyString.split(',')))
+    for lSubkey in lKey:
+        if type(lSubkey) != int:
+            raise Exception('Keys not of type integer')
+
+    if abs(lKey[0]) >= lModulus:
+        lKey[0] = lKey[0] % lModulus
+
+    if abs(lKey[1]) >= lModulus:
+        lKey[1] = lKey[1] % lModulus
+
+    return lKey
+
+
+def get_involutary_keys(pRelativePrimes: list, pModulus: int) -> list:
+
+    lInvolutaryKeys = []
+    for lRelativePrime in lRelativePrimes:
+        # Involutary means e(e(x)) = x where e(x) = ax + b. In other words, encrypting twice
+        # outputs the original value. This implies
+        # e(e(x)) = a(ax + b) + b = x (mod m) => a**2(x) + b(a + 1) = x (mod m)
+        # We need a**2 = 1 (mod m) plus b(a + 1) = 0 (mod m)
+        # This is true when a**2 = 1 (mod m) and either b = 0 or a = -1 (mod m)
+        if ((lRelativePrime ** 2) % pModulus == 1):
+            # (pModulus - 1) (mod m) is same as -1 (mod m)
+            if (lRelativePrime % pModulus) == (pModulus - 1):
+                lInvolutaryKeys.append([lRelativePrime, "Any b in 0-{}".format(pModulus)])
+            else:
+                for lAdditiveKeyParameter in range(0, pModulus):
+                    if (lAdditiveKeyParameter * (lRelativePrime + 1)) % pModulus == 0:
+                        lInvolutaryKeys.append([lRelativePrime, lAdditiveKeyParameter])
+    return lInvolutaryKeys
 
 
 def key_is_involutary(pKey: bytearray, pModulus: int) -> bool:
@@ -208,22 +229,15 @@ if __name__ == '__main__':
     lArgs = lArgParser.parse_args()
 
     lModulus = lArgs.modulus
+    lKey = bytearray()
+    lKeyString = str(lArgs.key)
 
     if (lArgs.encrypt or lArgs.decrypt) and lArgs.key is None:
         lArgParser.error('If -e/--encrypt or -d/--decrypt selected, -k/--key is required')
 
     if lArgs.key:
         try:
-            lKey = bytearray(map(int, lArgs.key.split(',')))
-            for lSubkey in lKey:
-                if type(lSubkey) != int:
-                    raise Exception('Keys not of type integer')
-
-            if abs(lKey[0]) >= lModulus:
-                lKey[0] = lKey[0] % lModulus
-
-            if abs(lKey[1]) >= lModulus:
-                lKey[1] = lKey[1] % lModulus
+            lKey = derive_key(lKeyString)
         except:
             lArgParser.error("Affine cipher requires two keys of type integer. Input key in a,b format. i.e. --key=1,1")
 
@@ -249,10 +263,10 @@ if __name__ == '__main__':
 
         if lArgs.verbose:
             if key_is_trivial(lKey):
-                print('[*] Warning: Key {} is trivial'.format(lArgs.key))
+                print('[*] Warning: Key {} is trivial'.format(lKeyString))
 
             if key_is_involutary(lKey, lModulus):
-                print('[*] Warning: Key {} is involutary'.format(lArgs.key))
+                print('[*] Warning: Key {} is involutary'.format(lKeyString))
         #endif
 
         a = lKey[0]
@@ -270,8 +284,8 @@ if __name__ == '__main__':
                              "Since the value of the additive key parameter can be any value between 0 and {} ({} possible values), there are {} * {} = {} possible keys. "
                              "Watch out for involutary keys {}.".format(a, lModulus, a, lModulus, lGCD, lModulus, lNumberOfInverses, lModulus, lRelativePrimes, lModulus - 1, lModulus, lNumberOfInverses, lModulus, lNumberPossibleKeys, lInvolutaryKeys))
 
-        print_ciphertext(lInput, lKey, lModulus, lArgs.verbose, lArgs.output_format, lArgs.key)
+        print_ciphertext(lInput, lKey, lModulus, lArgs.verbose, lArgs.output_format, lKeyString)
 
     elif lArgs.decrypt:
-        print_plaintext(lInput, lKey, lModulus, lArgs.verbose, lArgs.key)
+        print_plaintext(lInput, lKey, lModulus, lArgs.verbose, lKeyString)
     #endif

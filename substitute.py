@@ -12,7 +12,7 @@ def get_padblock() -> bytearray:
 
 
 def derive_key(pKey: str) -> list:
-    lKey = list(map(int, lArgs.key.split(',')))
+    lKey = list(map(int, pKey.split(',')))
 
     lKeyValid = True
     lKeyLength = len(lKey)

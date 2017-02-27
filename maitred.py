@@ -68,7 +68,10 @@ def print_matrix(pMatrix: bytearray) -> None:
 
 
 def get_determinant(pMatrix: bytearray, pModulus: int) -> int:
-
+    # The determinant is a property of a matrix that describes whether
+    # the matrix is invertable and helps calulate the minor of the matrix.
+    # The determinant is used in generating the inverse of the matrix
+    # (inverse = 1/det(A) * Adjunct(A))
     lSizeOfMatrix = len(pMatrix)
     if lSizeOfMatrix != 4 and lSizeOfMatrix != 9:
         raise Exception('I only know how to do 2x2 and 3x3 matrices')
@@ -231,7 +234,9 @@ def get_minors(pMatrix: bytearray, pModulus:int) -> bytearray:
 
 
 def get_cofactors(pMatrix: bytearray, pModulus: int) -> bytearray:
-
+    # Calculating the co-factors of a matrix takes two steps. First
+    # calculate the minor of the matrix, then negate the elements
+    # that sit in a row/column where sum(row # + column #) is odd.
     lCofactors = bytearray()
     lSizeOfMatrix = len(pMatrix)
 

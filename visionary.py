@@ -17,7 +17,7 @@ def key_is_involutary(pKey: bytearray, pModulus:int) -> bool:
     # Therefore 2k = 0 (mod n)
     # If for every byte in pKey, 2k = 0 (mod n), then pKey is involutary
     for lByte in pKey:
-        if ((2* lByte) % pModulus) != 0:
+        if ((2 * lByte) % pModulus) != 0:
             return False
     return True
 

@@ -1,4 +1,5 @@
 import argparse
+from functools import reduce
 
 
 def derive_permutation(pPermutationString: str) -> list:
@@ -63,6 +64,26 @@ def get_permutation_cycles(pPermutation: list) -> list:
     #end for i
 
     return lCycles
+
+
+def do_lcm(a: int, b: int) -> int:
+    # Return least common multiple
+    return a * b // get_gcd(a, b)
+
+
+def get_lcm(pIntegers: list) -> int:
+    # Return lcm of args
+    return reduce(do_lcm, pIntegers)
+
+
+def get_permutation_order(pPermutationCycles: list) -> int:
+    # The order of a permutation written as the product of disjoint cycles
+    # is the least common multiple (lcm) of the lengths of those cycles
+    lCycleSizes = []
+    for lCycle in pPermutationCycles:
+        lCycleSizes.append(len(lCycle))
+
+    return get_lcm(lCycleSizes)
 
 
 def get_relative_primes(pModulus: int) -> list:
@@ -237,15 +258,14 @@ def print_mutiplicative_inverse(pNormalizedInput: int, pModulus: int, pGCD: int,
             print("NaN")
 
 
-def print_permutation_cycles(pPermutation: list, pVerbose: bool) -> None:
+def print_permutation_cycles(pPermutation: list, pPermutationCycles: list, pVerbose: bool) -> None:
 
-    lPermutationCycles = get_permutation_cycles(pPermutation)
     if pVerbose:
         print()
-        print("The cycles of permutation {} are {}".format(pPermutation, lPermutationCycles))
+        print("The cycles of permutation {} are {}".format(pPermutation, pPermutationCycles))
         print()
     else:
-        print(lPermutationCycles)
+        print(pPermutationCycles)
 
 
 def print_permutation_inverse(pPermutation: list, pVerbose: bool) -> None:
@@ -259,6 +279,17 @@ def print_permutation_inverse(pPermutation: list, pVerbose: bool) -> None:
         print(lPermutationInverse)
 
 
+def print_permutation_order(pPermutation: list, pPermutationCycles: list, pVerbose: bool) -> None:
+
+    lPermutationOrder = get_permutation_order(pPermutationCycles)
+    if pVerbose:
+        print()
+        print("The order of the permutation {} is {}".format(pPermutation, lPermutationOrder))
+        print()
+    else:
+        print(lPermutationOrder)
+
+
 if __name__ == '__main__':
 
     lArgParser = argparse.ArgumentParser(description='Utility Belt: A variety of functions helpful when studying basic crytography')
@@ -270,7 +301,8 @@ if __name__ == '__main__':
     lArgParser.add_argument('-mod', '--modulo', help='Calculate modulo of INPUT modulo MODULUS', action='store_true')
     lArgParser.add_argument('-allmods', '--all-modulo-calculations', help='Perform all available calculations of INPUT modulo MODULUS', action='store_true')
     lArgParser.add_argument('-m', '--modulus', help='Modulus. Default is 256.', action='store', default=256, type=int)
-    lArgParser.add_argument('-pc', '--permutation-cycles', help='Calculate the permutation cycles relative to INPUT. INPUT must be a complete set of integers in any order starting from 0.', action='store_true')
+    lArgParser.add_argument('-pc', '--permutation-cycles', help='Calculate the permutation cycles of permutation INPUT. INPUT must be a complete set of integers in any order starting from 0.', action='store_true')
+    lArgParser.add_argument('-po', '--permutation-order', help='Calculate the order of the permutation INPUT. INPUT must be a complete set of integers in any order starting from 0.', action='store_true')
     lArgParser.add_argument('-ip', '--invert-permutation', help='Calculate the inverse of the permutation INPUT. INPUT must be a complete set of integers in any order starting from 0.', action='store_true')
     lArgParser.add_argument('-allperms', '--all-permutation-calculations', help='Perform all available calculations of permutation INPUT', action='store_true')
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
@@ -278,7 +310,7 @@ if __name__ == '__main__':
     lArgs = lArgParser.parse_args()
 
     if lArgs.all_permutation_calculations:
-       lArgs.permutation_cycles = lArgs.invert_permutation = True
+       lArgs.permutation_cycles = lArgs.permutation_order = lArgs.invert_permutation = True
 
     if lArgs.permutation_cycles or lArgs.invert_permutation:
         try:
@@ -286,8 +318,15 @@ if __name__ == '__main__':
         except:
             lArgParser.error('Permutation must be a complete set of integers in any order starting from 0. Examples include 2,1,3,0 and 3,2,0,5,6,7,1,4')
 
-        if lArgs.permutation_cycles:
-            print_permutation_cycles(lPermutation, lArgs.verbose)
+        if lArgs.permutation_cycles or lArgs.permutation_order:
+
+            lPermutationCycles = get_permutation_cycles(lPermutation)
+
+            if lArgs.permutation_cycles:
+                print_permutation_cycles(lPermutation, lPermutationCycles, lArgs.verbose)
+
+            if lArgs.permutation_order:
+                print_permutation_order(lPermutation, lPermutationCycles, lArgs.verbose)
 
         if lArgs.invert_permutation:
             print_permutation_inverse(lPermutation, lArgs.verbose)

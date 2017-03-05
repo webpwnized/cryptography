@@ -1,5 +1,6 @@
 import argparse
 from functools import reduce
+from itertools import permutations
 
 
 def derive_permutation(pPermutationString: str) -> list:
@@ -85,6 +86,58 @@ def get_permutation_order(pPermutationCycles: list) -> int:
 
     return get_lcm(lCycleSizes)
 
+
+def generate_permutations(pPermutationSize: int) -> list:
+    lElements = []
+    if pPermutationSize > 0:
+        for i in range(0, pPermutationSize):
+            lElements.append(i)
+        return permutations(lElements)
+    else:
+        return lElements
+
+
+# def do_get_permutation_theoretical_cycles(pPermutationSize: int) -> list:
+#     # todo
+#     lCycle = []
+#     lCycles = []
+#     if pPermutationSize > 1:
+#         for i in range(1, (pPermutationSize // 2) + 1):
+#             lCycle = [pPermutationSize - i, i]
+#             lCycles.append(lCycle)
+#     return lCycles
+#
+#
+# def get_permutation_theoretical_cycles(pPermutationSize: int) -> None:
+#     # todo
+#     # try to divide into n groups, then n-1 groups, then n-2 groups
+#     lCycle = []
+#     lCycles = []
+#     lNewCycles = []
+#     if pPermutationSize > 1:
+#         for i in range(1, (pPermutationSize // 2) + 1):
+#             lCycle = [pPermutationSize - i, i]
+#             lCycles.append(lCycle)
+#
+#     for lCycle in lCycles:
+#         lNewCycles.append([do_get_permutation_theoretical_cycles(lCycle[0]), do_get_permutation_theoretical_cycles(lCycle[1])])
+#
+#     lCycles.append(lNewCycles)
+#     lCycles.append([pPermutationSize])
+#
+#     print(lCycles)
+#
+#     return lCycles
+#
+#
+# def get_maximum_permutation_order(pPermutationSize: int) -> int:
+#     # todo
+#     return 0
+
+
+# END PERMUTATION FUNCTIONS
+
+# BEGIN MODULAR FUNCTIONS
 
 def get_relative_primes(pModulus: int) -> list:
     lRelativePrimes = []
@@ -290,6 +343,19 @@ def print_permutation_order(pPermutation: list, pPermutationCycles: list, pVerbo
         print(lPermutationOrder)
 
 
+def print_permutations(pPermutations: list, pPermutationSize: int, pVerbose: bool) -> None:
+
+    if pVerbose:
+        print()
+        print("The permutations of size {} are {}".format(pPermutationSize, pPermutations))
+
+    for lPermutation in pPermutations:
+        print(lPermutation)
+
+    if pVerbose:
+        print()
+
+
 if __name__ == '__main__':
 
     lArgParser = argparse.ArgumentParser(description='Utility Belt: A variety of functions helpful when studying basic crytography')
@@ -305,9 +371,30 @@ if __name__ == '__main__':
     lArgParser.add_argument('-po', '--permutation-order', help='Calculate the order of the permutation INPUT. INPUT must be a complete set of integers in any order starting from 0.', action='store_true')
     lArgParser.add_argument('-ip', '--invert-permutation', help='Calculate the inverse of the permutation INPUT. INPUT must be a complete set of integers in any order starting from 0.', action='store_true')
     lArgParser.add_argument('-allperms', '--all-permutation-calculations', help='Perform all available calculations of permutation INPUT', action='store_true')
+    lArgParser.add_argument('-gp', '--generate-permutations', help='Generate permutations of size INPUT. INPUT must be an integer.', action='store_true')
+    # lArgParser.add_argument('-tc', '--theoretical-cycles', help='Find the non-redundant cycles of all permutations of size INPUT. INPUT must be an integer.', action='store_true')
+    # lArgParser.add_argument('-mo', '--maximum-order', help='Find the maximum order of all permutations of size INPUT. INPUT must be an integer.', action='store_true')
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
     lArgParser.add_argument('INPUT', help='Integer input value of which to calculate answer. Required. This program will normalize values outside of Z-modulus. For example, -1 mod 26 will be converted to 25.', action='store', type=str)
     lArgs = lArgParser.parse_args()
+
+    if lArgs.generate_permutations or lArgs.theoretical_cycles or lArgs.find_maximum_order:
+        lPermutationSize = int(lArgs.INPUT)
+        lPermutations = list(generate_permutations(lPermutationSize))
+
+        if lArgs.generate_permutations:
+            print_permutations(lPermutations, lPermutationSize, lArgs.verbose)
+
+        if lArgs.theoretical_cycles or lArgs.find_maximum_order:
+
+            lMaxiumumOrder = 0
+            lTheoreticalCycles = get_permutation_theoretical_cycles(lPermutationSize)
+                # if lArgs.theoretical_cycles:
+                #     print_permutation_theoretical_cycles(lTheoreticalCycles, lArgs.verbose)
+                #
+                # if lArgs.find_maximum_order:
+                #     lMaxiumumOrder = get_maximum_permutation_order(lTheoreticalCycles)
+                #     print_maximum_permutation_order(lTheoreticalCycles, lArgs.verbose)
 
     if lArgs.all_permutation_calculations:
        lArgs.permutation_cycles = lArgs.permutation_order = lArgs.invert_permutation = True

@@ -5,10 +5,13 @@ def derive_matrix(lMatrixString: str, pModulus: int) -> bytearray:
     # split on comma into bytearray
     lMatrix = bytearray(map(lambda x: get_int_modulo_n_in_zn(int(x), pModulus), lMatrixString.split(',')))
 
+    # Verify each element is an integer. This might not be needed if data structure is byte array
     for lElement in lMatrix:
         if type(lElement) != int:
             raise Exception('Matrix elements not of type integer')
 
+    # If matrix is square, the square root is an integer
+    # We could also check the log base x of x = 2 and other methods
     lMatrixLength = len(lMatrix)
     if math.sqrt(lMatrixLength) != math.floor(math.sqrt(lMatrixLength)):
         raise Exception('Matrix is not square')

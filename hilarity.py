@@ -1,4 +1,4 @@
-import argparse, math
+import argparse, math, base64
 
 
 def derive_matrix(lMatrixString: str, pModulus: int) -> bytearray:
@@ -10,13 +10,17 @@ def derive_matrix(lMatrixString: str, pModulus: int) -> bytearray:
         if type(lElement) != int:
             raise Exception('Matrix elements not of type integer')
 
-    # If matrix is square, the square root is an integer
-    # We could also check the log base x of x = 2 and other methods
+    # If matrix is a perfect square, the square root is an integer
     lMatrixLength = len(lMatrix)
     if math.sqrt(lMatrixLength) != math.floor(math.sqrt(lMatrixLength)):
         raise Exception('Matrix is not square')
 
-    return lMatrix
+    # If matrix is a perfect square of integers, normalize with respect to MODULUS
+    lNormalizedMatrix = bytearray()
+    for lByte in lMatrix:
+        lNormalizedMatrix.append(get_int_modulo_n_in_zn(lByte, lModulus))
+
+    return lNormalizedMatrix
 
 
 def get_gcd(x: int, y: int) -> int:
@@ -299,14 +303,59 @@ def get_inverse_matrix(pMatrix: bytearray, pModulus: int) -> bytearray:
     return lInverseMatrix
 
 
+def is_identity_matrix(pMatrix: bytearray, pModulus: int) -> bool:
+    # Identity matrix contains the value 1 in all cells along main diagonal
+    # and zeros elsewhere
+    # Example:  1  0  0
+    #           0  1  0
+    #           0  0  1
+    lSizeOfMatrix = len(pMatrix)
+    lRowLength = int(math.sqrt(lSizeOfMatrix))
+
+    for lIndex, lByte in enumerate(pMatrix):
+        lRowNumber = math.floor(lIndex / lRowLength)
+        lIdentityColumn = (lRowLength * lRowNumber) + (lRowNumber + 1)
+        lValue = get_int_modulo_n_in_zn(lByte, lModulus) # value normalized modulo MODULUS
+        if (lIndex + 1) == lIdentityColumn:
+            if lValue != 1:
+                return False
+        else:
+            if lValue != 0:
+                return False
+        # end if
+    #end for
+    return True
+
+
+def key_is_trivial(pKey: bytearray, pModulus: int) -> bool:
+    # For a trivial key e(x) = x. This means the key is the "identity"
+    # with respect to whatever operation the encryption function e(x)
+    # performs. Hill cipher uses matrix multiplication,
+    # the identity matrix I satisfies this condition.
+    lSizeOfMatrix = len(pKey)
+    if lSizeOfMatrix != 4 and lSizeOfMatrix != 9:
+        raise Exception('I only know how to do 2x2 and 3x3 matrices')
+
+    return is_identity_matrix(pKey, pModulus)
+
+
 def key_is_involutary(pKey: bytearray, pModulus: int) -> bool:
 
     lSizeOfMatrix = len(pKey)
-    if lSizeOfMatrix != 4:
-        raise Exception('I dont know how to do non-2x2 matrices yet')
+    if lSizeOfMatrix != 4 and lSizeOfMatrix != 9:
+        raise Exception('I only know how to do 2x2 and 3x3 matrices')
 
+    # If key matrix is not invertible, it cannot be involutary
     lDeterminant = get_determinant(pKey, pModulus)
+    if lDeterminant == 0:
+        return False
 
+    # If key matrix is not invertible, it cannot be involutary
+    lGCD = get_gcd(lDeterminant, pModulus)
+    if lGCD != 1:
+        return False
+
+    # For the matrix to be involutary, it is neccesary the determinant be +/-1 mod n
     lNegative1ModN = pModulus - 1
     if lDeterminant == lNegative1ModN or lDeterminant == 1:
         lInverseKey = get_inverse_matrix(pKey, pModulus)
@@ -319,6 +368,86 @@ def key_is_involutary(pKey: bytearray, pModulus: int) -> bool:
         return lKeyInvolutary
 
     return False
+
+
+def
+
+def encrypt(pPlaintextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytearray:
+
+    lSizeOfMatrix = len(pKey)
+    lBlockSize = int(math.sqrt(lSizeOfMatrix)) # or row length or column height if you prefer
+    # Matrix multiplication multiplies the input vector by the respective column in the matrix
+    # If we make rows out of the columns, its easier to multiply
+    lTransposeKey = get_transpose(pKey, pModulus)
+    lCipherText = bytearray()
+    lCurrentBlockIndex = 0
+    lNumberBlocks = math.ceil(len(pPlaintextBytes) / lBlockSize)
+
+
+    for lCurrentBlockIndex in range(0, lNumberBlocks):
+
+        # Vector y = (Key Matrix K * Vector x) where Vector x is a block of plaintext and * is
+        # matrix multiplication
+
+        lBlockOffsetInBytes = lCurrentBlockIndex * lBlockSize
+
+        lCurrentBlock = bytearray()
+        for lIndex in range(0, lBlockSize):
+            lCurrentBlock.append(pPlaintextBytes[lBlockOffsetInBytes + lIndex])
+
+        # Pad out current block to block size
+        # todo make better padding scheme
+        lLengthCurrentBlock = len(lCurrentBlock)
+        if lLengthCurrentBlock < lBlockSize:
+            for i in range(0, (lBlockSize - lLengthCurrentBlock)):
+                lCurrentBlock.append(0)
+
+        lCipherTextByte = 0
+        for lCiphertextByteIndex in range(0, lBlockSize):
+
+            # For the ith cipher text byte, the key is the ith key matrix column, but
+            # the key is transposed so we can pretend the key is the ith row
+            lCurrentKey = bytearray()
+            for lIndex in range(0, lBlockSize):
+                lCurrentKey.append(lTransposeKey[lCiphertextByteIndex * lBlockSize + lIndex])
+
+            # Each byte of cipher text is the linear combination of the plaintext block and key column
+            for lIndex in range(0, lBlockSize):
+                lCipherTextByte += lCurrentBlock[lIndex] * lCurrentKey[lIndex]
+
+            lCipherText.append(lCipherTextByte)
+
+    # end for lCurrentBlockIndex
+
+    return lCipherText
+
+
+def is_unprintable(pBytes: bytearray) -> bool:
+    for x in pBytes:
+        if x > 127:
+            return True
+    return False
+
+
+def print_ciphertext(pInput: bytearray, pKey: bytearray, pModulus:int, pVerbose: bool, pOutputFormat: str) -> None:
+
+    lEncryptedInput = encrypt(pInput, pKey, pModulus)
+
+    if pOutputFormat == 'character' and is_unprintable(lEncryptedInput): pOutputFormat = 'base64'
+
+    if pOutputFormat == 'base64':
+        lEncryptedInput = base64.b64encode(lEncryptedInput)
+
+    if pVerbose:
+        print('Key: {}'.format(pKey))
+        print('Modulus: {}'.format(pModulus))
+        print('Output Format: {}'.format(pOutputFormat))
+        print('Cipher Output: ', end='')
+
+    sys.stdout.flush()
+    sys.stdout.buffer.write(lEncryptedInput)
+
+    if pVerbose: print()
 
 
 if __name__ == '__main__':
@@ -339,17 +468,47 @@ if __name__ == '__main__':
     lArgs = lArgParser.parse_args()
 
     lModulus = lArgs.modulus
-    lKey = derive_matrix(lArgs.key, lModulus)
+
+    if lArgs.encrypt and lArgs.key is None:
+        lArgParser.error('If -e/--encrypt selected, -k/--key is required')
+
+    if lArgs.decrypt and lArgs.key is None and lArgs.bruteforce is None:
+        lArgParser.error("If -d/--decrypt selected, either -k/--key or -b/--bruteforce is required")
+
+    if lArgs.key:
+        lKey = derive_matrix(str(lArgs.key), lModulus)
+
+    if lArgs.input_file:
+        if lArgs.input_format == 'base64':
+            with open(lArgs.input_file, 'rb') as lFile:
+                lInput = bytearray(base64.b64decode(lFile.read()))
+        else:
+            with open(lArgs.input_file, 'rb') as lFile:
+                lInput = bytearray(lFile.read())
+    else:
+        if lArgs.input_format == 'character':
+            lInput = bytearray(lArgs.INPUT.encode())
+        elif lArgs.input_format == 'base64':
+            lInput = bytearray(base64.b64decode(lArgs.INPUT))
+        elif lArgs.input_format == 'binary':
+            lInput = bytearray(lArgs.INPUT)
+
+    if lArgs.input_format and not lArgs.output_format:
+        lArgs.output_format = lArgs.input_format
 
     if lArgs.encrypt:
 
         if lArgs.verbose:
-            #if key_is_trivial(lArgs.key):
-            #   print('[*] Warning: Key {} is trivial'.format(lArgs.key))
+            if key_is_trivial(lKey, lModulus):
+                print('[*] Warning: Key {} is trivial'.format(lArgs.key))
 
-            if key_is_involutary(lKey, lArgs.modulus):
+            if key_is_involutary(lKey, lModulus):
                 print('[*] Warning: Key {} is involutary'.format(lArgs.key))
         #endif
 
-        #TODO: Everything
+        print_ciphertext(lInput, lKey, lModulus, lArgs.verbose, lArgs.output_format)
 
+    elif lArgs.decrypt:
+        print(0)
+        #print_plaintext(lInput, lArgs.key, lModulus, lArgs.verbose)
+    #endif

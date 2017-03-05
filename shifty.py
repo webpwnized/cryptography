@@ -111,6 +111,9 @@ if __name__ == '__main__':
     if lArgs.decrypt and lArgs.key is None and lArgs.bruteforce is None:
         lArgParser.error("If -d/--decrypt selected, either -k/--key or -b/--bruteforce is required")
 
+    if lArgs.key:
+        lKey = int(lArgs.key)
+
     if lArgs.input_file:
         if lArgs.input_format == 'base64':
             with open(lArgs.input_file, 'rb') as lFile:
@@ -132,20 +135,20 @@ if __name__ == '__main__':
     if lArgs.encrypt:
 
         if lArgs.verbose:
-            if key_is_trivial(lArgs.key, lModulus):
-                print('[*] Warning: Key {} is trivial'.format(lArgs.key))
+            if key_is_trivial(lKey, lModulus):
+                print('[*] Warning: Key {} is trivial'.format(lKey))
 
-            if key_is_involutary(lArgs.key, lModulus):
-                print('[*] Warning: Key {} is involutary'.format(lArgs.key))
+            if key_is_involutary(lKey, lModulus):
+                print('[*] Warning: Key {} is involutary'.format(lKey))
         #endif
 
-        print_ciphertext(lInput, lArgs.key, lModulus, lArgs.verbose, lArgs.output_format)
+        print_ciphertext(lInput, lKey, lModulus, lArgs.verbose, lArgs.output_format)
 
     elif lArgs.decrypt:
         if lArgs.bruteforce:
             # Test Case: BEEAKFYDJXUQYHYJIQRYHTYJIQFBQDUYJIIKFUHCQD
             bruteforce_plaintext(lInput, lModulus, lArgs.verbose)
         else:
-            print_plaintext(lInput, lArgs.key, lModulus, lArgs.verbose)
+            print_plaintext(lInput, lKey, lModulus, lArgs.verbose)
         # endif
     #endif

@@ -114,7 +114,37 @@ Optional arguments:
     -v, --verbose         Enables verbose output
     -i INPUT_FILE, --input-file INPUT_FILE
                         Read INPUT from an input file
-                        
+
+# Hilarity
+
+    An implementation of the Hill cipher system
+
+Required arguments:
+    
+    INPUT                 Input value to encrypt/decrypt
+
+Optional arguments:
+
+    -h, --help            show this help message and exit
+    -e, --encrypt         Encrypt INPUT. This option requires a KEY.
+    -d, --decrypt         Decrypt INPUT. This option requires a KEY or
+                        BRUTEFORCE flag.
+    -k KEY, --key KEY     Encryption/Decryption key of integers in matrix
+                        format. The matrix must be square. For example a 2 X 2
+                        matrix could be 1, 2, 3, 4
+    -if {character,binary,base64}, --input-format {character,binary,base64}
+                        Input format can be character, binary, or base64
+    -of {character,binary,base64}, --output-format {character,binary,base64}
+                        Output format can be character, binary, or base64. If
+                        input format provided, but output format is not
+                        provided, output format defaults to match input
+                        format.
+    -m MODULUS, --modulus MODULUS
+                        Modulus. Default is 256.
+    -v, --verbose         Enables verbose output
+    -i INPUT_FILE, --input-file INPUT_FILE
+                        Read INPUT from an input file
+
 # Freek
 
     Byte frequency analyzer
@@ -162,26 +192,6 @@ Optional arguments:
                         Does NOT include index of coincidence. Equivalent to
                         -cpmae.
 
-# Inversion
-
-    Inverts elements modulo a modulus
-
-Usage: inversion.py [-h] [-i] [-m MODULUS] [-v] INPUT
-
-Required arguments:
-
-    INPUT                 Integer input value of which to calculate inverse. Required.
-
-Optional arguments:
-
-    -h, --help            show this help message and exit
-    -i, --mutiplicative-inverse
-                        Calculate multiplicative inverse of INPUT modulo
-                        MODULUS
-    -m MODULUS, --modulus MODULUS
-                        Modulus. Default is 256.
-    -v, --verbose         Enables verbose output
-
 # Maitre D
 
 A matrix variant calculator within modulo MODULUS
@@ -214,3 +224,84 @@ Optional arguments:
     -v, --verbose         Enables verbose output
     -m MODULUS, --modulus MODULUS
                         Modulus. Default is 256.
+
+ # Utility Belt
+ 
+    A variety of functions helpful when studying basic crytography
+
+Required arguments:
+
+    INPUT               Integer input value of which to calculate answer.
+                        Required. This program will normalize values outside
+                        of Z-modulus. For example, -1 mod 26 will be converted
+                        to 25.
+
+Optional arguments:
+
+    -h, --help            show this help message and exit
+    -rp, --relative-primes
+                        Calculate the relative primes with respect to MODULUS.
+                        INPUT is not relevant with respect to this function.
+    -pf, --prime-factors  Calculate the prime factors with respect to MODULUS.
+                        INPUT is not relevant with respect to this function.
+    -cmi, --count-multiplicative-inverses
+                        Count of multiplicative inverses with respect to
+                        MODULUS using Euler Phi function. INPUT is not
+                        relevant with respect to this function.
+    -gcd, --greatest-common-divisor
+                        Calculate the greatest common divisor of INPUT and
+                        MODULUS
+    -mi, --mutiplicative-inverse
+                        Calculate multiplicative inverse of INPUT modulo
+                        MODULUS
+    -mod, --modulo        Calculate modulo of INPUT modulo MODULUS
+    -allmods, --all-modulo-calculations
+                        Perform all available calculations of INPUT modulo
+                        MODULUS
+    -m MODULUS, --modulus MODULUS
+                        Modulus. Default is 256.
+    -pc, --permutation-cycles
+                        Calculate the permutation cycles of permutation INPUT.
+                        INPUT must be a complete set of integers in any order
+                        starting from 0.
+    -po, --permutation-order
+                        Calculate the order of the permutation INPUT. INPUT
+                        must be a complete set of integers in any order
+                        starting from 0.
+    -ip, --invert-permutation
+                        Calculate the inverse of the permutation INPUT. INPUT
+                        must be a complete set of integers in any order
+                        starting from 0.
+    -allperms, --all-permutation-calculations
+                        Perform all available calculations of permutation
+                        INPUT
+    -gp, --generate-permutations
+                        Generate permutations of size INPUT. INPUT must be an
+                        integer.
+    -v, --verbose         Enables verbose output
+
+# Transference
+
+usage: transference.py [-h] [-tft] [-lat] [-all] [-v] INPUT
+
+    A tool to help visualize s-boxes (substitution boxes or transfer functions)
+
+Required arguments:
+
+    INPUT                 The substitution table (s-box) represented as a comma
+                        delimted list of integers. The length of the list is
+                        the number of bits in the substitution. Required.
+                        Example: 3,2,0,1 means substitute 3 for 0, 2 for 1, 0
+                        for 2 and 1 for 3.
+
+Optional arguments:
+
+    -h, --help            show this help message and exit
+    -tft, --transfer-function-table
+                        Print the transfer function table for the s-box
+    -lat, --linear-approximation-table
+                        Calculate the linear transformation table for the
+                        s-box
+    -all, --all           Calculate the linear transformation table for the
+                        s-box
+    -v, --verbose         Enables verbose output

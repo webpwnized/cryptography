@@ -1,4 +1,4 @@
-import argparse, math, base64
+import argparse, math, base64, sys
 
 
 def derive_matrix(lMatrixString: str, pModulus: int) -> bytearray:
@@ -59,19 +59,6 @@ def get_int_modulo_n_in_zn(pInt: int, pModulus: int) -> int:
     if lAModuloN < 0:
         lAModuloN = pModulus + lAModuloN
     return lAModuloN
-
-
-def print_matrix(pMatrix: bytearray) -> None:
-
-    lSizeOfMatrix = len(pMatrix)
-    lRowLength = math.sqrt(lSizeOfMatrix)
-
-    for lIndex, lByte in enumerate(pMatrix):
-        if lIndex % lRowLength == 0:
-            print()
-        print(str(lByte) + '\t', end='')
-    print()
-    print()
 
 
 def get_determinant(pMatrix: bytearray, pModulus: int) -> int:
@@ -346,17 +333,12 @@ def key_is_involutary(pKey: bytearray, pModulus: int) -> bool:
         raise Exception('I only know how to do 2x2 and 3x3 matrices')
 
     # If key matrix is not invertible, it cannot be involutary
-    lDeterminant = get_determinant(pKey, pModulus)
-    if lDeterminant == 0:
-        return False
-
-    # If key matrix is not invertible, it cannot be involutary
-    lGCD = get_gcd(lDeterminant, pModulus)
-    if lGCD != 1:
+    if not matrix_is_invertible(pKey, pModulus):
         return False
 
     # For the matrix to be involutary, it is neccesary the determinant be +/-1 mod n
     lNegative1ModN = pModulus - 1
+    lDeterminant = get_determinant(pKey, pModulus)
     if lDeterminant == lNegative1ModN or lDeterminant == 1:
         lInverseKey = get_inverse_matrix(pKey, pModulus)
 
@@ -370,39 +352,50 @@ def key_is_involutary(pKey: bytearray, pModulus: int) -> bool:
     return False
 
 
-def
+def matrix_is_invertible(pMatrix: bytearray, pModulus: int) -> bool:
+    # For a matrix to be invertable, the determinant must be non-zero
+    # and the determinant must be relatively prime to the modulus so
+    # determinant can be inverted modulo modulus.
+    lDeterminant = get_determinant(pMatrix, pModulus)
+    if lDeterminant == 0:
+        return False
+
+    # Test if determinant is relatively prime to modulus
+    lGCD = get_gcd(lDeterminant, pModulus)
+    if lGCD != 1:
+        return False
+
+    return True
+
 
 def encrypt(pPlaintextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytearray:
 
-    lSizeOfMatrix = len(pKey)
-    lBlockSize = int(math.sqrt(lSizeOfMatrix)) # or row length or column height if you prefer
     # Matrix multiplication multiplies the input vector by the respective column in the matrix
     # If we make rows out of the columns, its easier to multiply
     lTransposeKey = get_transpose(pKey, pModulus)
+    lSizeOfMatrix = len(pKey)
+    lBlockSize = int(math.sqrt(lSizeOfMatrix)) # or row length or column height if you prefer
+    lBytesOfPlaintext = len(pPlaintextBytes)
+    lNumberBlocks = math.ceil(lBytesOfPlaintext / lBlockSize)
     lCipherText = bytearray()
-    lCurrentBlockIndex = 0
-    lNumberBlocks = math.ceil(len(pPlaintextBytes) / lBlockSize)
 
+    # Vector y = (Key Matrix K * Vector x) where Vector x is a block of plaintext and * is
+    # matrix multiplication
+    for lCurrentPlaintextBlockIndex in range(0, lNumberBlocks):
 
-    for lCurrentBlockIndex in range(0, lNumberBlocks):
+        lBlockOffsetInBytes = lCurrentPlaintextBlockIndex * lBlockSize
 
-        # Vector y = (Key Matrix K * Vector x) where Vector x is a block of plaintext and * is
-        # matrix multiplication
-
-        lBlockOffsetInBytes = lCurrentBlockIndex * lBlockSize
-
-        lCurrentBlock = bytearray()
+        lCurrentPlaintextBlock = bytearray()
         for lIndex in range(0, lBlockSize):
-            lCurrentBlock.append(pPlaintextBytes[lBlockOffsetInBytes + lIndex])
+            lCurrentPlaintextBlock.append(pPlaintextBytes[lBlockOffsetInBytes + lIndex])
 
         # Pad out current block to block size
         # todo make better padding scheme
-        lLengthCurrentBlock = len(lCurrentBlock)
+        lLengthCurrentBlock = len(lCurrentPlaintextBlock)
         if lLengthCurrentBlock < lBlockSize:
             for i in range(0, (lBlockSize - lLengthCurrentBlock)):
-                lCurrentBlock.append(0)
+                lCurrentPlaintextBlock.append(0)
 
-        lCipherTextByte = 0
         for lCiphertextByteIndex in range(0, lBlockSize):
 
             # For the ith cipher text byte, the key is the ith key matrix column, but
@@ -412,14 +405,59 @@ def encrypt(pPlaintextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytear
                 lCurrentKey.append(lTransposeKey[lCiphertextByteIndex * lBlockSize + lIndex])
 
             # Each byte of cipher text is the linear combination of the plaintext block and key column
+            lCipherTextByte = 0
             for lIndex in range(0, lBlockSize):
-                lCipherTextByte += lCurrentBlock[lIndex] * lCurrentKey[lIndex]
+                lCipherTextByte += (lCurrentPlaintextBlock[lIndex] * lCurrentKey[lIndex]) % pModulus
 
+            lCipherTextByte = get_int_modulo_n_in_zn(lCipherTextByte, pModulus)
             lCipherText.append(lCipherTextByte)
 
-    # end for lCurrentBlockIndex
+    # end for lCurrentPlaintextBlockIndex
 
     return lCipherText
+
+
+def decrypt(pCiphertextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytearray:
+
+    # Matrix multiplication multiplies the input vector by the respective column in the matrix
+    # If we make rows out of the columns, its easier to multiply
+    lInverseKey = get_inverse_matrix(pKey, pModulus)
+    lTransposeKey = get_transpose(lInverseKey, pModulus)
+    lSizeOfMatrix = len(lTransposeKey)
+    lBlockSize = int(math.sqrt(lSizeOfMatrix)) # or row length or column height if you prefer
+    lBytesOfCiphertext = len(pCiphertextBytes)
+    lNumberBlocks = math.ceil(lBytesOfCiphertext / lBlockSize)
+    lPlaintext = bytearray()
+
+    # Vector y = (Key Matrix K * Vector x) where Vector x is a block of plaintext and * is
+    # matrix multiplication
+    for lCurrentPlaintextBlockIndex in range(0, lNumberBlocks):
+
+        lBlockOffsetInBytes = lCurrentPlaintextBlockIndex * lBlockSize
+
+        lCurrentPlaintextBlock = bytearray()
+        for lIndex in range(0, lBlockSize):
+            lCurrentPlaintextBlock.append(pCiphertextBytes[lBlockOffsetInBytes + lIndex])
+
+        for lPlaintextByteIndex in range(0, lBlockSize):
+
+            # For the ith cipher text byte, the key is the ith key matrix column, but
+            # the key is transposed so we can pretend the key is the ith row
+            lCurrentKey = bytearray()
+            for lIndex in range(0, lBlockSize):
+                lCurrentKey.append(lTransposeKey[lPlaintextByteIndex * lBlockSize + lIndex])
+
+            # Each byte of cipher text is the linear combination of the plaintext block and key column
+            lPlaintextByte = 0
+            for lIndex in range(0, lBlockSize):
+                lPlaintextByte += (lCurrentPlaintextBlock[lIndex] * lCurrentKey[lIndex]) % pModulus
+
+            lPlaintextByte = get_int_modulo_n_in_zn(lPlaintextByte, pModulus)
+            lPlaintext.append(lPlaintextByte)
+
+    # end for lCurrentPlaintextBlockIndex
+
+    return lPlaintext
 
 
 def is_unprintable(pBytes: bytearray) -> bool:
@@ -427,6 +465,23 @@ def is_unprintable(pBytes: bytearray) -> bool:
         if x > 127:
             return True
     return False
+
+
+def print_plaintext(pInput: bytearray, pKey: int, pModulus:int, pVerbose: bool) -> None:
+
+    lDecryptedInput = decrypt(pInput, pKey, pModulus)
+
+    if pVerbose:
+        print('Modulus: {}'.format(pModulus))
+        print('Key: ')
+        print_matrix(pKey)
+        print()
+        print('Plaintext Output: ', end='')
+
+    sys.stdout.flush()
+    sys.stdout.buffer.write(lDecryptedInput)
+
+    if pVerbose: print()
 
 
 def print_ciphertext(pInput: bytearray, pKey: bytearray, pModulus:int, pVerbose: bool, pOutputFormat: str) -> None:
@@ -439,15 +494,31 @@ def print_ciphertext(pInput: bytearray, pKey: bytearray, pModulus:int, pVerbose:
         lEncryptedInput = base64.b64encode(lEncryptedInput)
 
     if pVerbose:
-        print('Key: {}'.format(pKey))
-        print('Modulus: {}'.format(pModulus))
         print('Output Format: {}'.format(pOutputFormat))
+        print('Modulus: {}'.format(pModulus))
+        print('Key: ')
+        print_matrix(pKey)
+        print()
         print('Cipher Output: ', end='')
 
     sys.stdout.flush()
     sys.stdout.buffer.write(lEncryptedInput)
 
-    if pVerbose: print()
+    if pVerbose:
+        print()
+
+
+def print_matrix(pMatrix: bytearray) -> None:
+
+    lSizeOfMatrix = len(pMatrix)
+    lRowLength = math.sqrt(lSizeOfMatrix)
+
+    for lIndex, lByte in enumerate(pMatrix):
+        if lIndex % lRowLength == 0:
+            print()
+        print(str(lByte) + '\t', end='')
+    print()
+    print()
 
 
 if __name__ == '__main__':
@@ -477,6 +548,8 @@ if __name__ == '__main__':
 
     if lArgs.key:
         lKey = derive_matrix(str(lArgs.key), lModulus)
+        if not matrix_is_invertible(lKey, lModulus):
+            lArgParser.error("The key {} is not invertible modulo {}".format(lKey, lModulus))
 
     if lArgs.input_file:
         if lArgs.input_format == 'base64':
@@ -509,6 +582,5 @@ if __name__ == '__main__':
         print_ciphertext(lInput, lKey, lModulus, lArgs.verbose, lArgs.output_format)
 
     elif lArgs.decrypt:
-        print(0)
-        #print_plaintext(lInput, lArgs.key, lModulus, lArgs.verbose)
+        print_plaintext(lInput, lKey, lModulus, lArgs.verbose)
     #endif

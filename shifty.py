@@ -43,7 +43,7 @@ def print_plaintext(pInput: bytearray, pKey: int, pModulus:int, pVerbose: bool) 
     if pVerbose:
         print('Key: {}'.format(pKey))
         print('Modulus: {}'.format(pModulus))
-        print('Cipher Output: ', end='')
+        print('Plaintext Output: ', end='')
 
     sys.stdout.flush()
     sys.stdout.buffer.write(lDecryptedInput)

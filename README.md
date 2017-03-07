@@ -207,23 +207,25 @@ Required arguments:
 
 Optional arguments:
 
-    -h, --help            show this help message and exit
-    -d, --determinant     Calculate the determinant of the matrix modulo
+    -h, --help          Show this help message and exit
+    -d, --determinant   Calculate the determinant of the matrix modulo
                         MODULUS. Answer will be in Z-MODULUS.
     -id, --inverse-determinant
                         Calculate the inverse of the determinant of the matrix
                         modulo MODULUS. Answer will be in Z-MODULUS.
-    -t, --transpose       Calculate the transpose of the matrix modulo MODULUS 
-    -mi, --minors         Calculate the minors of the matrix modulo MODULUS
-    -c, --cofactors       Calculate the cofactors of the matrix modulo MODULUS
-    -a, --adjunct         Calculate the adjunct of the matrix modulo MODULUS
-    -i, --inverse         Calculate the inverse of the matrix modulo MODULUS
-    -all, --all           Calculate the determinant, inverse determinant,
+    -t, --transpose     Calculate the transpose of the matrix modulo MODULUS 
+    -mi, --minors       Calculate the minors of the matrix modulo MODULUS
+    -c, --cofactors     Calculate the cofactors of the matrix modulo MODULUS
+    -a, --adjunct       Calculate the adjunct of the matrix modulo MODULUS
+    -i, --inverse       Calculate the inverse of the matrix modulo MODULUS
+    -all, --all         Calculate the determinant, inverse determinant,
                         transpose, adjunct and inverse of the matrix modulo
                         MODULUS. Same as -id -dai
-    -v, --verbose         Enables verbose output
-    -m MODULUS, --modulus MODULUS
-                        Modulus. Default is 256.
+    -phi, --count-invertible-matrices
+                        Calculate the number of invertible matrices of size
+                        INPUT modulo MODULUS.
+    -v, --verbose       Enables verbose output
+    -m MODULUS, --modulus MODULUS   Modulus. Default is 256.
 
  # Utility Belt
  

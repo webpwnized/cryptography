@@ -147,27 +147,27 @@ def get_relative_primes(pModulus: int) -> list:
     return lRelativePrimes
 
 
-def get_prime_factors(n: int) -> list:
+def get_prime_factors(pComposite: int) -> list:
     lPrimeFactors = []
 
-    #Two is only even prime
+    # Two is only even prime
     d = 2
-    # Count how many times n is divisible by 2
-    while (n % d) == 0:
+    # Count how many times pComposite is divisible by 2
+    while (pComposite % d) == 0:
         lPrimeFactors.append(d)
-        n //= d
+        pComposite //= d
 
     # Rest of primes are odd numbers. We go faster skipping even numbers
     # We only need to check odd numbers up to square root of n
     d=3
-    while d*d <= n:
-        while (n % d) == 0:
+    while d*d <= pComposite:
+        while (pComposite % d) == 0:
             lPrimeFactors.append(d)
-            n //= d
+            pComposite //= d
         d += 2
 
-    if n > 1:
-        lPrimeFactors.append(n)
+    if pComposite > 1:
+        lPrimeFactors.append(pComposite)
 
     return lPrimeFactors
 
@@ -375,7 +375,6 @@ if __name__ == '__main__':
     # lArgParser.add_argument('-tc', '--theoretical-cycles', help='Find the non-redundant cycles of all permutations of size INPUT. INPUT must be an integer.', action='store_true')
     # lArgParser.add_argument('-mo', '--maximum-order', help='Find the maximum order of all permutations of size INPUT. INPUT must be an integer.', action='store_true')
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
-    lArgParser.add_argument('INPUT', help='Integer input value of which to calculate answer. Required. This program will normalize values outside of Z-modulus. For example, -1 mod 26 will be converted to 25.', action='store', type=str)
     lArgs = lArgParser.parse_args()
 
     if lArgs.generate_permutations or lArgs.theoretical_cycles or lArgs.find_maximum_order:

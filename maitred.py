@@ -54,17 +54,29 @@ def get_int_modulo_n_in_zn(pInt: int, pModulus: int) -> int:
     return lAModuloN
 
 
-def print_matrix(pMatrix: bytearray) -> None:
+def get_prime_factors(pComposite: int) -> list:
+    lPrimeFactors = []
 
-    lSizeOfMatrix = len(pMatrix)
-    lRowLength = math.sqrt(lSizeOfMatrix)
+    #Two is only even prime
+    d = 2
+    # Count how many times pComposite is divisible by 2
+    while (pComposite % d) == 0:
+        lPrimeFactors.append(d)
+        pComposite //= d
 
-    for lIndex, lByte in enumerate(pMatrix):
-        if lIndex % lRowLength == 0:
-            print()
-        print(str(lByte) + '\t', end='')
-    print()
-    print()
+    # Rest of primes are odd numbers. We go faster skipping even numbers
+    # We only need to check odd numbers up to square root of n
+    d=3
+    while d*d <= pComposite:
+        while (pComposite % d) == 0:
+            lPrimeFactors.append(d)
+            pComposite //= d
+        d += 2
+
+    if pComposite > 1:
+        lPrimeFactors.append(pComposite)
+
+    return lPrimeFactors
 
 
 def get_determinant(pMatrix: bytearray, pModulus: int) -> int:
@@ -300,6 +312,54 @@ def get_inverse_matrix(pMatrix: bytearray, pModulus: int) -> bytearray:
     return lInverseMatrix
 
 
+def print_matrix(pMatrix: bytearray) -> None:
+
+    lSizeOfMatrix = len(pMatrix)
+    lRowLength = math.sqrt(lSizeOfMatrix)
+
+    for lIndex, lByte in enumerate(pMatrix):
+        if lIndex % lRowLength == 0:
+            print()
+        print(str(lByte) + '\t', end='')
+    print()
+    print()
+
+
+def get_number_of_invertible_matrices(pSizeOfMatrix: int, pModulus: int) -> None:
+
+    lPrimeFactors = get_prime_factors(pModulus)
+
+    lPrimeFactorsAndExponents = []
+    lCurrentPrime = [lPrimeFactors[0], 0]
+    for lPrime in lPrimeFactors:
+        if lCurrentPrime[0] != lPrime:
+            lPrimeFactorsAndExponents.append(lCurrentPrime)
+            lCurrentPrime = [lPrime, 0]
+        lCurrentPrime[1] += 1
+    lPrimeFactorsAndExponents.append(lCurrentPrime)
+
+    lPhi = 1
+    for p,e in lPrimeFactorsAndExponents:
+
+        lGeneralLinearGroups = 1
+        for k in range(0,(pSizeOfMatrix)):
+            lGeneralLinearGroups *= (p**pSizeOfMatrix - p**k)
+        lPhi *= p**((e-1)*(pSizeOfMatrix**2)) * lGeneralLinearGroups
+
+    return lPhi
+
+
+def print_number_of_invertible_matrices(pSizeOfMatrix: int, pModulus: int, pVerbose: bool) -> None:
+
+    lNumberInvertibleMatrices = get_number_of_invertible_matrices(pSizeOfMatrix, pModulus)
+    if pVerbose:
+        print()
+        print("The number of invertible matrices of size {} by {} modulus {} is {}".format(pSizeOfMatrix, pSizeOfMatrix, pModulus, lNumberInvertibleMatrices))
+        print()
+    else:
+        print(lNumberInvertibleMatrices)
+
+
 if __name__ == '__main__':
 
     lArgParser = argparse.ArgumentParser(description='Maitre D: A matrix variant calculator within modulo MODULUS')
@@ -311,67 +371,78 @@ if __name__ == '__main__':
     lArgParser.add_argument('-a', '--adjunct', help='Calculate the adjunct of the matrix modulo MODULUS', action='store_true')
     lArgParser.add_argument('-i', '--inverse', help='Calculate the inverse of the matrix modulo MODULUS', action='store_true')
     lArgParser.add_argument('-all', '--all', help='Calculate the determinant, inverse determinant, transpose, adjunct and inverse of the matrix modulo MODULUS. Same as -id -dai', action='store_true')
+    lArgParser.add_argument('-phi', '--count-invertible-matrices', help='Calculate the number of invertible matrices of size INPUT modulo MODULUS.', action='store_true')
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
     lArgParser.add_argument('-m', '--modulus', help='Modulus. Default is 256.', action='store', default=256, type=int)
     lArgParser.add_argument('INPUT', nargs='?', help='Input matrix of integers. The matrix must be square. For example a 2 X 2 matrix could be 1, 2, 3, 4', type=str, action='store')
     lArgs = lArgParser.parse_args()
 
     lModulus = lArgs.modulus
-    lMatrix = derive_matrix(lArgs.INPUT, lModulus)
-    lDeterminant = 0
 
-    if lArgs.all:
-        lArgs.determinant = lArgs.inverse_determinant = lArgs.transpose = lArgs.minors = lArgs.cofactors = lArgs.adjunct = lArgs.inverse = True
+    if lArgs.count_invertible_matrices:
+            try:
+                lSizeOfMatrix = int(lArgs.INPUT)
+            except Exception:
+                lArgParser.error("For option -phi/--count-invertable-matrices, INPUT must be an integer. For example, 2 represents a 2 X 2 matrix.")
 
-    if lArgs.verbose:
-        print()
-        print('Matrix (mod {}):'.format(lModulus))
-        print_matrix(lMatrix)
+            print_number_of_invertible_matrices(lSizeOfMatrix, lModulus, lArgs.verbose)
+    else:
 
-    if lArgs.determinant or lArgs.inverse_determinant:
-        lDeterminant = get_determinant(lMatrix, lModulus)
+        lMatrix = derive_matrix(lArgs.INPUT, lModulus)
+        lDeterminant = 0
 
-    if lArgs.determinant:
-        if lArgs.verbose:
-            print('Determinant of Matrix (mod {}): '.format(lModulus), end='')
-        print(lDeterminant)
+        if lArgs.all:
+            lArgs.determinant = lArgs.inverse_determinant = lArgs.transpose = lArgs.minors = lArgs.cofactors = lArgs.adjunct = lArgs.inverse = True
+
         if lArgs.verbose:
             print()
+            print('Matrix (mod {}):'.format(lModulus))
+            print_matrix(lMatrix)
 
-    if lArgs.inverse_determinant:
-        lInverseDeterminant = get_multiplicative_inverse(lDeterminant, lModulus)
-        if lArgs.verbose:
-            print('Inverse of the determinant of Matrix (mod {}): '.format(lModulus), end='')
-        print(lInverseDeterminant)
-        if lArgs.verbose:
-            print()
+        if lArgs.determinant or lArgs.inverse_determinant:
+            lDeterminant = get_determinant(lMatrix, lModulus)
 
-    if lArgs.transpose:
-        lTransposeMatrix = get_transpose(lMatrix, lModulus)
-        if lArgs.verbose:
-            print('Transpose Matrix (mod {}): '.format(lModulus))
-        print_matrix(lTransposeMatrix)
+        if lArgs.determinant:
+            if lArgs.verbose:
+                print('Determinant of Matrix (mod {}): '.format(lModulus), end='')
+            print(lDeterminant)
+            if lArgs.verbose:
+                print()
 
-    if lArgs.minors:
-        lMinorsMatrix = get_minors(lMatrix, lModulus)
-        if lArgs.verbose:
-            print('Minors Matrix (mod {}): '.format(lModulus))
-        print_matrix(lMinorsMatrix)
+        if lArgs.inverse_determinant:
+            lInverseDeterminant = get_multiplicative_inverse(lDeterminant, lModulus)
+            if lArgs.verbose:
+                print('Inverse of the determinant of Matrix (mod {}): '.format(lModulus), end='')
+            print(lInverseDeterminant)
+            if lArgs.verbose:
+                print()
 
-    if lArgs.cofactors:
-        lCofactorsMatrix = get_cofactors(lMatrix, lModulus)
-        if lArgs.verbose:
-            print('Cofactors Matrix (mod {}): '.format(lModulus))
-        print_matrix(lCofactorsMatrix)
+        if lArgs.transpose:
+            lTransposeMatrix = get_transpose(lMatrix, lModulus)
+            if lArgs.verbose:
+                print('Transpose Matrix (mod {}): '.format(lModulus))
+            print_matrix(lTransposeMatrix)
 
-    if lArgs.adjunct:
-        lAdjunctMatrix = get_adjunct(lMatrix, lModulus)
-        if lArgs.verbose:
-            print('Adjunct Matrix (mod {}): '.format(lModulus))
-        print_matrix(lAdjunctMatrix)
+        if lArgs.minors:
+            lMinorsMatrix = get_minors(lMatrix, lModulus)
+            if lArgs.verbose:
+                print('Minors Matrix (mod {}): '.format(lModulus))
+            print_matrix(lMinorsMatrix)
 
-    if lArgs.inverse:
-        lInverseMatrix = get_inverse_matrix(lMatrix, lModulus)
-        if lArgs.verbose:
-            print('Inverse Matrix: (mod {}): '.format(lModulus))
-        print_matrix(lInverseMatrix)
+        if lArgs.cofactors:
+            lCofactorsMatrix = get_cofactors(lMatrix, lModulus)
+            if lArgs.verbose:
+                print('Cofactors Matrix (mod {}): '.format(lModulus))
+            print_matrix(lCofactorsMatrix)
+
+        if lArgs.adjunct:
+            lAdjunctMatrix = get_adjunct(lMatrix, lModulus)
+            if lArgs.verbose:
+                print('Adjunct Matrix (mod {}): '.format(lModulus))
+            print_matrix(lAdjunctMatrix)
+
+        if lArgs.inverse:
+            lInverseMatrix = get_inverse_matrix(lMatrix, lModulus)
+            if lArgs.verbose:
+                print('Inverse Matrix: (mod {}): '.format(lModulus))
+            print_matrix(lInverseMatrix)

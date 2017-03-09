@@ -1,7 +1,6 @@
-import argparse, math
-
 # Requires pip install bitarray
 from bitarray import bitarray
+import argparse, math
 
 
 def derive_transfer_function(pTransferFunctionString: str) -> list:

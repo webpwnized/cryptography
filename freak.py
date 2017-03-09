@@ -18,9 +18,49 @@ def get_byte_counts(pInput: bytearray) -> tuple:
     return lByteCounts, lTotalBytes
 
 
+def get_statistics(pInput: bytearray) -> tuple:
+    # Mean = Average = SUM FROM 0 to N-1 / N
+    # Median = (N / 2)th value after sorting values
+    # Mode = Winner of popularity contest
+    # Variance = SUM FROM 0 to N-1[(i - Mean)**2]
+    # Standard Deviation = SquareRoot(Variance)
+
+    lByteCounts = dict.fromkeys(range(0,256), 0)
+    lSum = 0
+    lList = []
+    lVariance = 0.0
+
+    for lByte in pInput:
+        lByteCounts[lByte] += 1
+        lSum += lByte
+        lList.append(lByte)
+    # end for
+
+    lTotalBytes = len(lList)
+    lMedianPosition = math.ceil(lTotalBytes / 2)
+    lList.sort()
+
+    # if even number of elements, median (middle value) is considered the average of the two central elements
+    # if odd number of elements, median is the central element
+    if (lTotalBytes % 2) == 0:
+        lMedian = (lList[lMedianPosition] + lList[lMedianPosition] + 1) / 2
+    else:
+        lMedian = lList[lMedianPosition]
+
+    lMean = lSum / lTotalBytes
+    # lMode = sorted(lByteCounts.items(), key=lambda x:x[1], reverse=True)[0]
+
+    for lInt in lList:
+        lVariance += (lInt - lMean)**2
+
+    lStandardDeviation = math.sqrt(lVariance)
+
+    return lMean, lMedian, lMode, lVariance, lStandardDeviation
+
+
 def get_entropy(pByteCounts: dict, pTotalBytes: int) -> float:
-    # Shannon's Entropy -SUM FROM 0 to N-1(Pi * LogBase2(Pi)) where
-    # Pi is the probability of element i
+    # Shannon's Entropy -SUM FROM 0 to N-1(Pr[i] * LogBase2(Pr[i])) where
+    # Pr[i] is the probability of element i occurring
     BASE2 = 2
     lEntropy = 0
     for lByte, lByteCount in pByteCounts.items():
@@ -131,7 +171,7 @@ def print_columnar_analysis(pInput: bytearray, pShowCount: bool, pShowHistogram:
     lColumn = 0
     for lByte in lInput:
         lColumns[lColumn].append(lByte)
-        lColumn = (lColumn + 1) % lArgs.columnar_analysis
+        lColumn = (lColumn + 1) % pColumnarAnalysis
 
     for lColumn in lColumns:
         print("Analysis of Column {}".format(lColumn + 1))
@@ -140,11 +180,53 @@ def print_columnar_analysis(pInput: bytearray, pShowCount: bool, pShowHistogram:
         print()
 
 
-def print_entropy(pInput: bytearray) -> None:
-    lByteCounts, lTotalBytes = get_byte_counts(lInput)
-    lEntropy = get_entropy(lByteCounts, lTotalBytes)
-    print("Entropy: {}".format(TWO_DECIMAL_PLACES.format(lEntropy)))
-    print()
+def print_mean(pMean: float, pVerbose: bool) -> None:
+    if pVerbose:
+        print("Arithmetic Mean (Average): {}".format(TWO_DECIMAL_PLACES.format(pMean)))
+        print()
+    else:
+        print(TWO_DECIMAL_PLACES.format(pMean))
+
+
+def print_median(pMedian: float, pVerbose: bool) -> None:
+    if pVerbose:
+        print("Median (Middle element): {}".format(TWO_DECIMAL_PLACES.format(pMedian)))
+        print()
+    else:
+        print(TWO_DECIMAL_PLACES.format(pMedian))
+
+
+def print_mode(pMode: float, pVerbose: bool) -> None:
+    if pVerbose:
+        print("Mode (Most populus): {}".format(TWO_DECIMAL_PLACES.format(pMode)))
+        print()
+    else:
+        print(TWO_DECIMAL_PLACES.format(pMode))
+
+
+def print_variance(pVariance: float, pVerbose: bool) -> None:
+    if pVerbose:
+        print("Variance: {}".format(TWO_DECIMAL_PLACES.format(pVariance)))
+        print()
+    else:
+        print(TWO_DECIMAL_PLACES.format(pVariance))
+
+
+def print_standard_deviation(pStandardDeviation: float, pVerbose: bool) -> None:
+    if pVerbose:
+        print("Standard Deviation: {}".format(TWO_DECIMAL_PLACES.format(pStandardDeviation)))
+        print()
+    else:
+        print(TWO_DECIMAL_PLACES.format(pStandardDeviation))
+
+
+def print_entropy(pByteCounts: dict, pTotalBytes: int, pVerbose: bool) -> None:
+    lEntropy = get_entropy(pByteCounts, pTotalBytes)
+    if pVerbose:
+        print("Entropy: {}".format(TWO_DECIMAL_PLACES.format(lEntropy)))
+        print()
+    else:
+        print(TWO_DECIMAL_PLACES.format(lEntropy))
 
 
 if __name__ == '__main__':
@@ -155,9 +237,15 @@ if __name__ == '__main__':
     lOutputOptions.add_argument('-p', '--show-percent', help='Show percent representation for each byte of input', action='store_true')
     lOutputOptions.add_argument('-m', '--show-histogram', help='Show histogram for each byte of input', action='store_true')
     lOutputOptions.add_argument('-a', '--show-ascii', help='Show ascii representation for each byte of input', action='store_true')
+    lOutputOptions.add_argument('-mean', '--show-mean', help='Show Arithmetic Mean (Average)', action='store_true')
+    lOutputOptions.add_argument('-median', '--show-median', help='Show Median', action='store_true')
+    lOutputOptions.add_argument('-mode', '--show-mode', help='Show Mode', action='store_true')
+    lOutputOptions.add_argument('-variance', '--show-variance', help='Show Variance', action='store_true')
+    lOutputOptions.add_argument('-stddev', '--show-standard-deviation', help='Show Standard Deviation', action='store_true')
     lOutputOptions.add_argument('-e', '--show-entropy', help='Show Shannon entropy', action='store_true')
     lOutputOptions.add_argument('-ioc', '--show-ioc', help='Show kappa (delta) index of coincidence', action='store_true')
-    lOutputOptions.add_argument('-all', '--show-all', help='Show count, ascii, percent represenation, histogram for each byte of input and Shannon entropy for input. Does NOT include index of coincidence. Equivalent to -cpmae.', action='store_true')
+    lOutputOptions.add_argument('-stats', '--show-statistics', help='Show mean, median, mode, variance and standard deviation for each byte of input and Shannon entropy for input. Does NOT include index of coincidence. Equivalent to -cpmae.', action='store_true')
+    lOutputOptions.add_argument('-all', '--show-all', help='Show statistics, count, ascii, percent represenation, histogram for each byte of input and Shannon entropy for input. Does NOT include index of coincidence. Equivalent to -cpmae.', action='store_true')
     lArgParser.add_argument('-t', '--top-frequencies', help='Only display top X frequencies. Particuarly useful when combined with columnar analysis or when less important bytes clutter analysis.', action='store', type=int)
     lArgParser.add_argument('-g', '--show-guesses', help='Show ascii representation for top byte of input. Tries ASCII lower, upper and numeric translations. Only works with -t/--top-frequencies.', action='store_true')
     lArgParser.add_argument('-col', '--columnar-analysis', help='Break INPUT into X columns and perform analysis on columns. Particuarly useful against polyalphabetic stream ciphers.', action='store', type=int)
@@ -168,7 +256,16 @@ if __name__ == '__main__':
     lInputSource.add_argument('INPUT', nargs='?', help='INPUT to analyze', action='store')
     lArgs = lArgParser.parse_args()
 
-    if lArgs.show_all is False and lArgs.show_percent is False and lArgs.show_histogram is False and lArgs.show_ascii is False and lArgs.show_count is False and lArgs.show_ioc is False and lArgs.show_entropy is False:
+    if lArgs.show_statistics:
+        lArgs.show_entropy = lArgs.show_mean = lArgs.show_median = lArgs.show_mode = lArgs.show_variance = lArgs.standard_deviation = True
+
+    if lArgs.show_all:
+        lArgs.show_percent = lArgs.show_histogram = lArgs.show_ascii = lArgs.show_count = lArgs.show_entropy = lArgs.show_mean = lArgs.show_median = lArgs.show_mode = lArgs.show_variance = lArgs.standard_deviation = True
+
+    if lArgs.show_percent is False and lArgs.show_histogram is False \
+            and lArgs.show_ascii is False and lArgs.show_count is False and lArgs.show_ioc is False \
+            and lArgs.show_entropy is False and lArgs.show_mean  is False and lArgs.show_median is False \
+            and lArgs.show_mode is False and lArgs.show_variance is False and lArgs.show_standard_deviation is False:
         lArgParser.error('No output chosen to display. Please choose at least one output option.')
 
     if lArgs.input_file:
@@ -187,9 +284,6 @@ if __name__ == '__main__':
             lInput = bytearray(lArgs.INPUT)
     # end if
 
-    if lArgs.show_all:
-        lArgs.show_percent = lArgs.show_histogram = lArgs.show_ascii = lArgs.show_count = lArgs.show_entropy = True
-
     if lArgs.show_percent or lArgs.show_histogram or lArgs.show_ascii or lArgs.show_count:
 
         if lArgs.columnar_analysis:
@@ -200,5 +294,24 @@ if __name__ == '__main__':
     if lArgs.show_ioc:
         print_delta_index_of_coincidence(lInput)
 
+    if lArgs.show_mean or lArgs.show_median or lArgs.show_mode or lArgs.show_variance or lArgs.standard_deviation:
+        lMean, lMeadian, lMode, lVariance, lStandardDeviation = get_statistics(lInput)
+
+    if lArgs.show_mean:
+        print_mean(lMean, lArgs.verbose)
+
+    if lArgs.show_median:
+        print_median(lMeadian, lArgs.verbose)
+
+    if lArgs.show_mode:
+        print_mode(lMode, lArgs.verbose)
+
+    if lArgs.show_variance:
+        print_variance(lVariance, lArgs.verbose)
+
+    if lArgs.show_standard_deviation:
+        print_standard_deviation(lStandardDeviation, lArgs.verbose)
+
     if lArgs.show_entropy:
-        print_entropy(lInput)
+        lByteCounts, lTotalBytes = get_byte_counts(lInput)
+        print_entropy(lByteCounts, lTotalBytes, lArgs.verbose)

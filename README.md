@@ -185,6 +185,11 @@ Optional arguments:
     -p, --show-percent    Show percent representation for each byte of input
     -m, --show-histogram  Show histogram for each byte of input
     -a, --show-ascii      Show ascii representation for each byte of input
+    -mean, --show-mean    Show Arithmetic Mean (Average)
+    -median, --show-median              Show Median
+    -mode, --show-mode                  Show Mode
+    -variance, --show-variance          Show Variance
+    -stddev, --show-standard-deviation  Show Standard Deviation
     -e, --show-entropy    Show Shannon entropy
     -ioc, --show-ioc      Show kappa (delta) index of coincidence
     -all, --show-all      Show count, ascii, percent represenation, histogram

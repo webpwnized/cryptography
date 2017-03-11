@@ -58,7 +58,7 @@ def initialize_registers(pKey: list) -> tuple:
 def encrypt(pInput: bytearray, pKey: list) -> bytearray:
 
     lRegister1, lRegister2 = initialize_registers(pKey)
-    lCarryBit = bitarray('0')
+    lCarryBit = False # Bitwise 0
     l8BitFormat = '08b'
     lCiphertext = bytearray()
 
@@ -105,7 +105,7 @@ def encrypt(pInput: bytearray, pKey: list) -> bytearray:
             # encrypt by xoring plaintext with ciphertext
             lCiphertextBits.append(lPlaintextBits[i] ^ lAdderSum)
 
-        lCiphertext.append(lCiphertextBits.tobytes())
+        lCiphertext.append(int(lCiphertextBits.tobytes()[0])) # Example of why python is so hard to understand sometimes
 
     return lCiphertext
 

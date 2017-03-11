@@ -69,6 +69,7 @@ def print_linear_approximation_table(pTransferFunction: list) -> None:
 
     for lA in range(0, lLengthTransferFunction):
 
+        # print row header
         print("a" + str(lA) + "\t", end="")
 
         for lB in range(0, lLengthTransferFunction):

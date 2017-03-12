@@ -37,6 +37,7 @@ def get_statistics(pInput: bytearray) -> tuple:
     # end for
 
     lTotalBytes = len(lList)
+    lMean = lSum / lTotalBytes
     lMedianPosition = math.ceil(lTotalBytes / 2)
     lList.sort()
 
@@ -47,19 +48,25 @@ def get_statistics(pInput: bytearray) -> tuple:
     else:
         lMedian = lList[lMedianPosition]
 
-    lMean = lSum / lTotalBytes
-    lMode = sorted(lByteCounts.items(), key=lambda x:x[1], reverse=True)[0]
-
     lMostPopularByte = -1
+    lLeastPopularByte = -1
     lLargestCountOfBytes = 0
+    lSmallestCountOfBytes = 2**64
     for lTuple in lByteCounts.items():
         if lTuple[1] > lLargestCountOfBytes:
             lLargestCountOfBytes = lTuple[1]
             lMostPopularByte = lTuple[0]
         # end if
+        if lTuple[1] < lSmallestCountOfBytes:
+            lSmallestCountOfBytes = lTuple[1]
+            lLeastPopularByte = lTuple[0]
+        # end if
     # end if
 
     lMode = lMostPopularByte
+    lAntiMode = lLeastPopularByte
+    lModeCount = lLargestCountOfBytes
+    lAntiModeCount = lSmallestCountOfBytes
 
     for lInt in lList:
         lSumOfDifferencesSquared += (lInt - lMean)**2
@@ -68,7 +75,7 @@ def get_statistics(pInput: bytearray) -> tuple:
 
     lStandardDeviation = math.sqrt(lVariance)
 
-    return lMean, lMedian, lMode, lVariance, lStandardDeviation
+    return lMean, lMedian, lMode, lModeCount, lAntiMode, lAntiModeCount, lVariance, lStandardDeviation
 
 
 def get_entropy(pByteCounts: dict, pTotalBytes: int) -> float:
@@ -128,7 +135,7 @@ def print_delta_index_of_coincidence(pInput: bytearray) -> None:
 
 
 def print_byte_analysis(pByte: int, pByteCount: int, pTotalBytes: int, pShowCount: bool, pShowHistogram: bool, pShowASCII: bool, pShowPercent: bool, pVerbose: bool) -> None:
-    SCALE_FACTOR = 20
+    SCALE_FACTOR = 10
     lPercent = pByteCount / pTotalBytes * 100
     lFrequencyBarLength = int(lPercent * SCALE_FACTOR)
 
@@ -209,12 +216,20 @@ def print_median(pMedian: int, pVerbose: bool) -> None:
         print(pMedian)
 
 
-def print_mode(pMode: int, pVerbose: bool) -> None:
+def print_mode(pMode: int, pModeCount: int, pVerbose: bool) -> None:
     if pVerbose:
         print()
-        print("Mode (Most populous): {}".format(pMode))
+        print("Mode (Most populous): {} (Count:{})".format(pMode, pModeCount))
     else:
         print(pMode)
+
+
+def print_anti_mode(pAntiMode: int, pAntiModeCount: int, pVerbose: bool) -> None:
+    if pVerbose:
+        print()
+        print("Anti-Mode (Least populous): {} (Count:{})".format(pAntiMode, pAntiModeCount))
+    else:
+        print(pAntiMode)
 
 
 def print_variance(pVariance: float, pVerbose: bool) -> None:
@@ -252,7 +267,8 @@ if __name__ == '__main__':
     lOutputOptions.add_argument('-a', '--show-ascii', help='Show ascii representation for each byte of input', action='store_true')
     lOutputOptions.add_argument('-mean', '--show-mean', help='Show Arithmetic Mean (Average)', action='store_true')
     lOutputOptions.add_argument('-median', '--show-median', help='Show Median', action='store_true')
-    lOutputOptions.add_argument('-mode', '--show-mode', help='Show Mode', action='store_true')
+    lOutputOptions.add_argument('-mode', '--show-mode', help='Show Mode (Most popular byte)', action='store_true')
+    lOutputOptions.add_argument('-antimode', '--show-anti-mode', help='Show Anti-Mode (Least popular byte)', action='store_true')
     lOutputOptions.add_argument('-variance', '--show-variance', help='Show Variance', action='store_true')
     lOutputOptions.add_argument('-stddev', '--show-standard-deviation', help='Show Standard Deviation', action='store_true')
     lOutputOptions.add_argument('-e', '--show-entropy', help='Show Shannon entropy', action='store_true')
@@ -270,15 +286,15 @@ if __name__ == '__main__':
     lArgs = lArgParser.parse_args()
 
     if lArgs.show_statistics:
-        lArgs.show_entropy = lArgs.show_mean = lArgs.show_median = lArgs.show_mode = lArgs.show_variance = lArgs.show_standard_deviation = True
+        lArgs.show_entropy = lArgs.show_mean = lArgs.show_median = lArgs.show_mode = lArgs.show_anti_mode = lArgs.show_variance = lArgs.show_standard_deviation = True
 
     if lArgs.show_all:
-        lArgs.show_percent = lArgs.show_histogram = lArgs.show_ascii = lArgs.show_count = lArgs.show_entropy = lArgs.show_mean = lArgs.show_median = lArgs.show_mode = lArgs.show_variance = lArgs.show_standard_deviation = True
+        lArgs.show_percent = lArgs.show_histogram = lArgs.show_ascii = lArgs.show_count = lArgs.show_entropy = lArgs.show_mean = lArgs.show_median = lArgs.show_mode = lArgs.show_anti_mode = lArgs.show_variance = lArgs.show_standard_deviation = True
 
     if lArgs.show_percent is False and lArgs.show_histogram is False \
             and lArgs.show_ascii is False and lArgs.show_count is False and lArgs.show_ioc is False \
-            and lArgs.show_entropy is False and lArgs.show_mean  is False and lArgs.show_median is False \
-            and lArgs.show_mode is False and lArgs.show_variance is False and lArgs.show_standard_deviation is False:
+            and lArgs.show_entropy is False and lArgs.show_mean is False and lArgs.show_median is False \
+            and lArgs.show_mode is False and lArgs.show_anti_mode is False and lArgs.show_variance is False and lArgs.show_standard_deviation is False:
         lArgParser.error('No output chosen to display. Please choose at least one output option.')
 
     if lArgs.input_file:
@@ -307,8 +323,8 @@ if __name__ == '__main__':
     if lArgs.show_ioc:
         print_delta_index_of_coincidence(lInput)
 
-    if lArgs.show_mean or lArgs.show_median or lArgs.show_mode or lArgs.show_variance or lArgs.show_standard_deviation:
-        lMean, lMeadian, lMode, lVariance, lStandardDeviation = get_statistics(lInput)
+    if lArgs.show_mean or lArgs.show_median or lArgs.show_mode or lArgs.show_anti_mode or lArgs.show_variance or lArgs.show_standard_deviation:
+        lMean, lMeadian, lMode, lModeCount, lAntiMode, lAntiModeCount, lVariance, lStandardDeviation = get_statistics(lInput)
 
     if lArgs.show_mean:
         print_mean(lMean, lArgs.verbose)
@@ -317,7 +333,10 @@ if __name__ == '__main__':
         print_median(lMeadian, lArgs.verbose)
 
     if lArgs.show_mode:
-        print_mode(lMode, lArgs.verbose)
+        print_mode(lMode, lModeCount, lArgs.verbose)
+
+    if lArgs.show_anti_mode:
+        print_anti_mode(lAntiMode, lAntiModeCount, lArgs.verbose)
 
     if lArgs.show_variance:
         print_variance(lVariance, lArgs.verbose)

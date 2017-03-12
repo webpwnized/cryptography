@@ -37,6 +37,23 @@ def derive_key(pKeyString: str) -> list:
     return(lKey)
 
 
+def key_is_involutary(pKey: list) -> bool:
+    # Involutary key means e(d(x)) = e(e(x)) = x
+    # x = d(e(x)) = ((x XOR key) XOR key)
+    # Since (key XOR key) = 0 and x XOR 0 = x then ((x XOR key) XOR key) = x
+    # Therefore all keys are involutary for CSS cipher
+    return True
+
+
+def key_is_trivial(pKey: list) -> bool:
+    # Trivial key means e(x) = x
+    # This is true when key is 0,0,0,0,0
+    for lKey in pKey:
+        if int.from_bytes(lKey.tobytes(), byteorder='little') != 0:
+            return False
+    return True
+
+
 def initialize_registers(pKey: list) -> tuple:
 
     lRegister1 = bitarray()
@@ -71,8 +88,9 @@ def encrypt(pInput: bytearray, pKey: list) -> bytearray:
         # This is hard to follow because we consider MSB to be bit 17 but this code considers MSB to be bit 1
         for i in range(0, 8):
             # xor bit 17 and 3
-            lR1Bit17 = lRegister1[0]
-            lR1Bit3 = lRegister1[14]
+            lR1Bit17 = lRegister1[0]    # 17
+            lR1Bit3 = lRegister1[14]    # 3
+
             lNextR1Bit = lR1Bit17 ^ lR1Bit3
 
             # discard right-most bit
@@ -82,10 +100,10 @@ def encrypt(pInput: bytearray, pKey: list) -> bytearray:
             lRegister1.insert(0, lNextR1Bit)
 
             # xor bits 25, 8, 6 and 2
-            lR2Bit25 = lRegister2[0]
-            lR2Bit8 = lRegister2[17]
-            lR2Bit6 = lRegister2[19]
-            lR2Bit2 = lRegister2[23]
+            lR2Bit25 = lRegister2[0]    # 25
+            lR2Bit8 = lRegister2[17]    # 8
+            lR2Bit6 = lRegister2[19]    # 6
+            lR2Bit2 = lRegister2[23]    # 2
 
             lNextR2Bit = lR2Bit25 ^ lR2Bit8 ^ lR2Bit6 ^ lR2Bit2
 
@@ -105,14 +123,16 @@ def encrypt(pInput: bytearray, pKey: list) -> bytearray:
             # encrypt by xoring plaintext with ciphertext
             lCiphertextBits.append(lPlaintextBits[i] ^ lAdderSum)
 
-        lCiphertext.append(int(lCiphertextBits.tobytes()[0])) # Example of why python is so hard to understand sometimes
+        # tobytes() returns an array, so we take first (only) element
+        lCiphertext.append(int(lCiphertextBits.tobytes()[0]))
 
     return lCiphertext
 
 
 def is_unprintable(pBytes: bytearray) -> bool:
     for x in pBytes:
-        if x > 127: return True
+        if x > 127:
+            return True
     return False
 
 
@@ -177,21 +197,21 @@ if __name__ == '__main__':
 
     if lArgs.encrypt:
 
-    #     if lArgs.verbose:
-    #         if key_is_trivial(lKey, lModulus):
-    #             print('[*] Warning: Key {} is trivial'.format(lKey))
-    #
-    #         if key_is_involutary(lKey, lModulus):
-    #             print('[*] Warning: Key {} is involutary'.format(lKey))
-    #     #endif
-    #
-         print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format)
-    #
-    # elif lArgs.decrypt:
-    #     if lArgs.bruteforce:
-    #         # Test Case: BEEAKFYDJXUQYHYJIQRYHTYJIQFBQDUYJIIKFUHCQD
-    #         bruteforce_plaintext(lInput, lModulus, lArgs.verbose)
-    #     else:
-    #         print_plaintext(lInput, lKey, lModulus, lArgs.verbose)
-    #     # endif
-    # #endif
+        if lArgs.verbose:
+             if key_is_trivial(lKey):
+                 print('[*] Warning: Key {} is trivial'.format(lArgs.key))
+
+             if key_is_involutary(lKey):
+                 print('[*] Warning: Key {} is involutary'.format(lArgs.key))
+        # endif
+
+        print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format)
+
+    elif lArgs.decrypt:
+
+        # For CSS every key is involutary
+        # x = d(e(x)) = ((x XOR key) XOR key) = x
+        # Therefore to decrypt, it is only neccesary to encrypt a second time
+        print_ciphertext(lInput, lKey, lArgs.verbose, lArgs.output_format)
+
+    # endif

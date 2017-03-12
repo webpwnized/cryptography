@@ -171,11 +171,11 @@ Optional arguments:
       -i INPUT_FILE, --input-file INPUT_FILE
                             Read INPUT from an input file
 
-# Freek
+# Freak
 
     Byte frequency analyzer
 
-Usage: freek.py [-h] [-c] [-p] [-m] [-a] [-ioc] [-all] [-t TOP_FREQUENCIES]
+Usage: freak.py [-h] [-c] [-p] [-m] [-a] [-ioc] [-all] [-t TOP_FREQUENCIES]
                 [-g] [-col COLUMNAR_ANALYSIS] [-v]
                 [-if {character,binary,base64}] [-i INPUT_FILE]
                 [INPUT]

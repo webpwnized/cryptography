@@ -212,7 +212,7 @@ def print_median(pMedian: int, pVerbose: bool) -> None:
 def print_mode(pMode: int, pVerbose: bool) -> None:
     if pVerbose:
         print()
-        print("Mode (Most populus): {}".format(pMode))
+        print("Mode (Most populous): {}".format(pMode))
     else:
         print(pMode)
 

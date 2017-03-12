@@ -145,6 +145,32 @@ Optional arguments:
     -i INPUT_FILE, --input-file INPUT_FILE
                         Read INPUT from an input file
 
+# Content Scrambling System
+
+    An implementation of the css cipher system using two
+    linear feedback shift registers
+
+    Required arguments:
+      INPUT                 Input value to encrypt/decrypt
+
+    Optional arguments:
+      -h, --help            show this help message and exit
+      -e, --encrypt         Encrypt INPUT. This option requires a KEY.
+      -d, --decrypt         Decrypt INPUT. This option requires a KEY.
+      -k KEY, --key KEY     Encryption/Decryption key. Must be 5 bytes. Enter the
+                            bytes as a list of comma-delimited integers between
+                            0-255. Example: 25,230,3,64,12
+      -if {character,binary,base64}, --input-format {character,binary,base64}
+                            Input format can be character, binary, or base64
+      -of {character,binary,base64}, --output-format {character,binary,base64}
+                            Output format can be character, binary, or base64. If
+                            input format provided, but output format is not
+                            provided, output format defaults to match input
+                            format.
+      -v, --verbose         Enables verbose output
+      -i INPUT_FILE, --input-file INPUT_FILE
+                            Read INPUT from an input file
+
 # Freek
 
     Byte frequency analyzer

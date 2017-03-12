@@ -10,6 +10,7 @@ def derive_key(pKeyString: str) -> list:
     lRightKey = bitarray()
     lKey = []
 
+    # Parse 5 bytes from comma delimited input
     lKeyBytes = list(map(int, pKeyString.split(",")))
 
     if len(lKeyBytes) != 5:

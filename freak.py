@@ -68,6 +68,11 @@ def get_statistics(pInput: bytearray) -> tuple:
     lModeCount = lLargestCountOfBytes
     lAntiModeCount = lSmallestCountOfBytes
 
+    # If the distribution were perfectly even, what would be the mode? How far off is the actual mode?
+    lHomogonousModeCount = lTotalBytes / MODULUS
+    lModeCountRatio = lModeCount / lHomogonousModeCount
+    lAntiModeCountRatio = lAntiModeCount / lHomogonousModeCount
+
     for lInt in lList:
         lSumOfDifferencesSquared += (lInt - lMean)**2
 
@@ -75,7 +80,7 @@ def get_statistics(pInput: bytearray) -> tuple:
 
     lStandardDeviation = math.sqrt(lVariance)
 
-    return lMean, lMedian, lMode, lModeCount, lAntiMode, lAntiModeCount, lVariance, lStandardDeviation
+    return lMean, lMedian, lMode, lModeCount, lModeCountRatio, lAntiMode, lAntiModeCount, lAntiModeCountRatio, lVariance, lStandardDeviation
 
 
 def get_entropy(pByteCounts: dict, pTotalBytes: int) -> float:
@@ -216,18 +221,18 @@ def print_median(pMedian: int, pVerbose: bool) -> None:
         print(pMedian)
 
 
-def print_mode(pMode: int, pModeCount: int, pVerbose: bool) -> None:
+def print_mode(pMode: int, pModeCount: int, pModeCountRatio: int, pVerbose: bool) -> None:
     if pVerbose:
         print()
-        print("Mode (Most populous): {} (Count:{})".format(pMode, pModeCount))
+        print("Mode (Most populous): {} (Count: {} Ratio: {})".format(pMode, pModeCount, TWO_DECIMAL_PLACES.format(pModeCountRatio)))
     else:
         print(pMode)
 
 
-def print_anti_mode(pAntiMode: int, pAntiModeCount: int, pVerbose: bool) -> None:
+def print_anti_mode(pAntiMode: int, pAntiModeCount: int, pAntiModeCountRatio: int, pVerbose: bool) -> None:
     if pVerbose:
         print()
-        print("Anti-Mode (Least populous): {} (Count:{})".format(pAntiMode, pAntiModeCount))
+        print("Anti-Mode (Least populous): {} (Count: {} Ratio: {})".format(pAntiMode, pAntiModeCount, TWO_DECIMAL_PLACES.format(pAntiModeCountRatio)))
     else:
         print(pAntiMode)
 
@@ -324,7 +329,7 @@ if __name__ == '__main__':
         print_delta_index_of_coincidence(lInput)
 
     if lArgs.show_mean or lArgs.show_median or lArgs.show_mode or lArgs.show_anti_mode or lArgs.show_variance or lArgs.show_standard_deviation:
-        lMean, lMeadian, lMode, lModeCount, lAntiMode, lAntiModeCount, lVariance, lStandardDeviation = get_statistics(lInput)
+        lMean, lMeadian, lMode, lModeCount, lModeCountRatio, lAntiMode, lAntiModeCount, lAntiModeCountRatio, lVariance, lStandardDeviation = get_statistics(lInput)
 
     if lArgs.show_mean:
         print_mean(lMean, lArgs.verbose)
@@ -333,10 +338,10 @@ if __name__ == '__main__':
         print_median(lMeadian, lArgs.verbose)
 
     if lArgs.show_mode:
-        print_mode(lMode, lModeCount, lArgs.verbose)
+        print_mode(lMode, lModeCount, lModeCountRatio, lArgs.verbose)
 
     if lArgs.show_anti_mode:
-        print_anti_mode(lAntiMode, lAntiModeCount, lArgs.verbose)
+        print_anti_mode(lAntiMode, lAntiModeCount, lAntiModeCountRatio, lArgs.verbose)
 
     if lArgs.show_variance:
         print_variance(lVariance, lArgs.verbose)

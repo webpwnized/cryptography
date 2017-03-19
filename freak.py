@@ -95,7 +95,7 @@ def get_entropy(pByteCounts: dict, pTotalBytes: int) -> float:
     return lEntropy
 
 
-def get_delta_index_of_coincidence(pInput: bytearray) -> dict:
+def get_kappa_index_of_coincidence(pInput: bytearray) -> dict:
     # IOC:
     # For each shift, add up the times the two bytes offset by lBytesShifted happen to match (coincidental)
     # We shift at least one character up to a max of MAX_SHIFTS_TO_ANALYZE characters
@@ -103,7 +103,7 @@ def get_delta_index_of_coincidence(pInput: bytearray) -> dict:
     # the same key and will be statistically more likely to be the same character. (About twice as likely)
     # These "bumps" will be evident in the histogram with a period equal to the length of the key
 
-    MAX_SHIFTS_TO_ANALYZE = 60
+    MAX_SHIFTS_TO_ANALYZE = 50
 
     lBytesOfInput = len(pInput)
     lShiftsToAnalyze = min(lBytesOfInput, MAX_SHIFTS_TO_ANALYZE)
@@ -116,38 +116,47 @@ def get_delta_index_of_coincidence(pInput: bytearray) -> dict:
                 lMatches += 1
             # end if
         # end for lByte
-        lIOC[lBytesShifted] = lMatches / lBytesToTest
+        # Dividing denominator by bytes in alphabet normalizes IOC
+        lIOC[lBytesShifted] = lMatches / (lBytesToTest / MODULUS)
     # end for lBytesShifted
 
     return lIOC
 
 
-def print_delta_index_of_coincidence(pInput: bytearray) -> None:
-    lIOC = get_delta_index_of_coincidence(pInput)
+def print_kappa_index_of_coincidence(pInput: bytearray, pVerbose) -> None:
+    lIOC = get_kappa_index_of_coincidence(pInput)
 
-    lScaleFactor = 40
+    lScaleFactor = 20
 
     for lByteOffset, lCoincidence in lIOC.items():
-        lPercentCoincidence = lCoincidence * 100
-        lCoincidenceBarLength = int(lPercentCoincidence * lScaleFactor)
+        lCoincidenceBarLength = int(lCoincidence * lScaleFactor)
 
-        lOutput = 'Byte Offset: '
-        lOutput += str(lByteOffset) + ' '
-        lOutput += "(" + TWO_DECIMAL_PLACES.format(lPercentCoincidence) + "%) "
+        lOutput = ""
+        if pVerbose:
+            lOutput = 'Byte Offset: '
+        lOutput += str(lByteOffset).zfill(2) + ' '
+        lOutput += "[" + TWO_DECIMAL_PLACES.format(lCoincidence) + "] "
         lOutput += "#" * lCoincidenceBarLength
         print(lOutput)
     # end for
 
 
 def print_byte_analysis(pByte: int, pByteCount: int, pTotalBytes: int, pShowCount: bool, pShowHistogram: bool, pShowASCII: bool, pShowPercent: bool, pVerbose: bool) -> None:
-    SCALE_FACTOR = 10
+    SCALE_FACTOR = 20
     lPercent = pByteCount / pTotalBytes * 100
     lFrequencyBarLength = int(lPercent * SCALE_FACTOR)
+    lByteString = str(pByte)
+    lByteStringLength = len(lByteString)
+
+    if lByteStringLength < 2:
+        lByteTab = '\t\t'
+    else:
+        lByteTab = '\t'
 
     lOutput = ''
     if pVerbose:
         lOutput = 'Byte: '
-    lOutput += str(pByte) + '\t'
+    lOutput += lByteString + lByteTab
     if pShowASCII:
         lOutput += chr(pByte) + '\t'
     if pShowCount:
@@ -160,7 +169,7 @@ def print_byte_analysis(pByte: int, pByteCount: int, pTotalBytes: int, pShowCoun
     # end if
 
 
-def print_analysis(pInput: bytearray, pShowCount: bool, pShowHistogram: bool, pShowASCII: bool, pShowPercent: bool, pShowGuesses: bool, pVerbose: bool, pTopFrequencies: int, pColumnarAnalysis: int) -> None:
+def print_analysis(pInput: bytearray, pShowCount: bool, pShowHistogram: bool, pShowASCII: bool, pShowPercent: bool, pShowGuesses: bool, pVerbose: bool, pTopFrequencies: int, pKeyLength: int) -> None:
 
     lByteCounts, lTotalBytes = get_byte_counts(pInput)
 
@@ -173,9 +182,9 @@ def print_analysis(pInput: bytearray, pShowCount: bool, pShowHistogram: bool, pS
         for lByte, lByteCount in sorted(lByteCounts.items(), key=lambda x:x[1], reverse=True):
             if pVerbose or lByteCount:
                 if pShowGuesses and lAnalyzingMostPopularByte:
-                    # For JPEG we assu
-                    # me the mode of the plaintext is 0, so we guess the mode of the cipher text is offset by X bytes
-                    print('\nBest guess\tLowercase: ' + chr((lByte + 97) % MODULUS) + '\tUppercase: ' + chr((lByte + 65) % MODULUS) + '\tNumeric: ' + chr((lByte + 65) % MODULUS))
+                    # For JPEG we assume the mode of the plaintext is 0,
+                    # so we guess the mode of the cipher text is offset by X bytes
+                    print('\nBest guess\tLowercase: ' + chr((lByte + 97) % MODULUS) + '\tUppercase: ' + chr((lByte + 65) % MODULUS))
                     lAnalyzingMostPopularByte = False
                 print_byte_analysis(lByte, lByteCount, lTotalBytes, pShowCount, pShowHistogram, pShowASCII, pShowPercent, pVerbose)
             # end if
@@ -190,13 +199,13 @@ def print_analysis(pInput: bytearray, pShowCount: bool, pShowHistogram: bool, pS
     # end for
 
 
-def print_columnar_analysis(pInput: bytearray, pShowCount: bool, pShowHistogram: bool, pShowASCII: bool, pShowPercent: bool, pShowGuesses: bool, pVerbose: bool, pTopFrequencies: int, pColumnarAnalysis: int) -> None:
+def print_columnar_analysis(pInput: bytearray, pShowCount: bool, pShowHistogram: bool, pShowASCII: bool, pShowPercent: bool, pShowGuesses: bool, pVerbose: bool, pTopFrequencies: int, pKeyLength: int) -> None:
 
-    lColumns = {lColumn: bytearray() for lColumn in range(0, pColumnarAnalysis)}
+    lColumns = {lColumn: bytearray() for lColumn in range(0, pKeyLength)}
     lColumn = 0
     for lByte in lInput:
         lColumns[lColumn].append(lByte)
-        lColumn = (lColumn + 1) % pColumnarAnalysis
+        lColumn = (lColumn + 1) % pKeyLength
 
     for lColumn in lColumns:
         print("Analysis of Column {}".format(lColumn + 1))
@@ -277,7 +286,7 @@ if __name__ == '__main__':
     lOutputOptions.add_argument('-variance', '--show-variance', help='Show Variance', action='store_true')
     lOutputOptions.add_argument('-stddev', '--show-standard-deviation', help='Show Standard Deviation', action='store_true')
     lOutputOptions.add_argument('-e', '--show-entropy', help='Show Shannon entropy', action='store_true')
-    lOutputOptions.add_argument('-ioc', '--show-ioc', help='Show kappa (delta) index of coincidence', action='store_true')
+    lOutputOptions.add_argument('-ioc', '--show-ioc', help='Show kappa (kappa) index of coincidence', action='store_true')
     lOutputOptions.add_argument('-stats', '--show-statistics', help='Show mean, median, mode, variance and standard deviation for each byte of input and Shannon entropy for input. Equivalent to -e -mean -median -mode -variance -stddev.', action='store_true')
     lOutputOptions.add_argument('-all', '--show-all', help='Show statistics, count, ascii, percent represenation, histogram for each byte of input and Shannon entropy for input. Does NOT include index of coincidence. Equivalent to -cpmae -mean -median -mode -variance -stddev.', action='store_true')
     lArgParser.add_argument('-t', '--top-frequencies', help='Only display top X frequencies. Particuarly useful when combined with columnar analysis or when less important bytes clutter analysis.', action='store', type=int)
@@ -326,7 +335,7 @@ if __name__ == '__main__':
             print_analysis(lInput, lArgs.show_count, lArgs.show_histogram, lArgs.show_ascii, lArgs.show_percent, lArgs.show_guesses, lArgs.verbose, lArgs.top_frequencies, lArgs.columnar_analysis)
 
     if lArgs.show_ioc:
-        print_delta_index_of_coincidence(lInput)
+        print_kappa_index_of_coincidence(lInput, lArgs.verbose)
 
     if lArgs.show_mean or lArgs.show_median or lArgs.show_mode or lArgs.show_anti_mode or lArgs.show_variance or lArgs.show_standard_deviation:
         lMean, lMeadian, lMode, lModeCount, lModeCountRatio, lAntiMode, lAntiModeCount, lAntiModeCountRatio, lVariance, lStandardDeviation = get_statistics(lInput)

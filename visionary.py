@@ -37,17 +37,17 @@ def do_encrypt(pByte: int, pKey: int, pModulus:int) -> int:
     return (pByte + pKey) % pModulus
 
 
-def do_decrypt(pByte: int, pKey: int, pModulus:int) -> int:
-    #d(x) = (x - k) % n
-    return (pByte - pKey) % pModulus
-
-
 def encrypt(pPlaintextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytearray:
     lEncryptedBytes = bytearray()
     lLengthKey = len(pKey)
     for lIndex, lPlaintextByte in enumerate(pPlaintextBytes):
         lEncryptedBytes.append(do_encrypt(lPlaintextByte, pKey[(lIndex % lLengthKey)], pModulus))
     return lEncryptedBytes
+
+
+def do_decrypt(pByte: int, pKey: int, pModulus:int) -> int:
+    #d(x) = (x - k) % n
+    return (pByte - pKey) % pModulus
 
 
 def decrypt(pCiphertextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytearray:

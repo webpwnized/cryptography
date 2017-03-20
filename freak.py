@@ -186,17 +186,19 @@ def print_analysis(pInput: bytearray, pShowCount: bool, pShowHistogram: bool, pS
                     # so we guess the mode of the cipher text is offset by X bytes
                     print('\nBest guess\tLowercase: ' + chr((lByte + 97) % MODULUS) + '\tUppercase: ' + chr((lByte + 65) % MODULUS))
                     lAnalyzingMostPopularByte = False
+                # end if
                 print_byte_analysis(lByte, lByteCount, lTotalBytes, pShowCount, pShowHistogram, pShowASCII, pShowPercent, pVerbose)
             # end if
             lBytesPrinted += 1
             if lBytesPrinted > (pTopFrequencies - 1):
                 break
+        # end for
     else:
         for lByte, lByteCount in lByteCounts.items():
             if pVerbose or lByteCount:
                 print_byte_analysis(lByte, lByteCount, lTotalBytes, pShowCount, pShowHistogram, pShowASCII, pShowPercent, pVerbose)
             # end if
-    # end for
+        # end for
 
 
 def print_columnar_analysis(pInput: bytearray, pShowCount: bool, pShowHistogram: bool, pShowASCII: bool, pShowPercent: bool, pShowGuesses: bool, pVerbose: bool, pTopFrequencies: int, pKeyLength: int) -> None:

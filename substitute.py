@@ -104,8 +104,9 @@ def encrypt(pPlaintextBytes: bytearray, pKey: list) -> bytearray:
     lLengthKey = len(pKey)
     lLengthPlaintext = len(pPlaintextBytes)
     lLengthLastBlock = lLengthPlaintext % lLengthKey
+
     if lLengthLastBlock > 0:
-        lPadBytesNeeded = lLengthKey - (lLengthPlaintext % lLengthKey)
+        lPadBytesNeeded = lLengthKey - lLengthLastBlock
     else:
         lPadBytesNeeded = 0
 
@@ -130,7 +131,7 @@ def encrypt(pPlaintextBytes: bytearray, pKey: list) -> bytearray:
 def decrypt(pCiphertextBytes: bytearray, pKey: list) -> bytearray:
     lDecryptedBytes = bytearray()
     lLengthCiphertext = len(pCiphertextBytes)
-    lStartPaddingIndicationBlock = lLengthCiphertext-PADDING_INDICATION_BLOCK_LENGTH
+    lStartPaddingIndicationBlock = lLengthCiphertext - PADDING_INDICATION_BLOCK_LENGTH
     lEndPaddingIndicationBlock = lLengthCiphertext
     lPaddingDetected = False
     lPadBlock = get_padblock()

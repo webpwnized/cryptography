@@ -1,5 +1,14 @@
 import argparse, math, base64, sys
 
+PADDING_INDICATION_BLOCK_LENGTH = 10
+
+
+def get_padblock() -> bytearray:
+    lPadBlock = bytearray()
+    for i in range(0, PADDING_INDICATION_BLOCK_LENGTH):
+        lPadBlock.append(i)
+    return lPadBlock
+
 
 def derive_matrix(lMatrixString: str, pModulus: int) -> bytearray:
     # split on comma into bytearray
@@ -379,6 +388,19 @@ def encrypt(pPlaintextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytear
     lNumberBlocks = math.ceil(lBytesOfPlaintext / lBlockSize)
     lCipherText = bytearray()
 
+    lLengthLastBlock = lBytesOfPlaintext % lBlockSize
+
+    if lLengthLastBlock > 0:
+        lPadBytesNeeded = lBlockSize - lLengthLastBlock
+    else:
+        lPadBytesNeeded = 0
+
+    # Append number of pad bytes needed to end of plaintext |pad bytes| times
+    if lPadBytesNeeded > 0:
+        for i in range(0, lPadBytesNeeded):
+            pPlaintextBytes.append(lPadBytesNeeded)
+        lBytesOfPlaintext += lPadBytesNeeded
+
     # Vector y = (Key Matrix K * Vector x) where Vector x is a block of plaintext and * is
     # matrix multiplication
     for lCurrentPlaintextBlockIndex in range(0, lNumberBlocks):
@@ -414,6 +436,9 @@ def encrypt(pPlaintextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytear
 
     # end for lCurrentPlaintextBlockIndex
 
+    if lPadBytesNeeded > 0:
+        lCipherText += get_padblock()
+
     return lCipherText
 
 
@@ -428,6 +453,15 @@ def decrypt(pCiphertextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytea
     lBytesOfCiphertext = len(pCiphertextBytes)
     lNumberBlocks = math.ceil(lBytesOfCiphertext / lBlockSize)
     lPlaintext = bytearray()
+    lStartPaddingIndicationBlock = lBytesOfCiphertext - PADDING_INDICATION_BLOCK_LENGTH
+    lEndPaddingIndicationBlock = lBytesOfCiphertext
+    lPaddingDetected = False
+    lPadBlock = get_padblock()
+    lPadBytesNeeded = 0
+
+    if pCiphertextBytes[lStartPaddingIndicationBlock:lEndPaddingIndicationBlock] == lPadBlock:
+        lPaddingDetected = True
+        lBytesOfCiphertext -= PADDING_INDICATION_BLOCK_LENGTH
 
     # Vector y = (Key Matrix K * Vector x) where Vector x is a block of plaintext and * is
     # matrix multiplication
@@ -457,7 +491,10 @@ def decrypt(pCiphertextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytea
 
     # end for lCurrentPlaintextBlockIndex
 
-    return lPlaintext
+    if lPaddingDetected:
+        lPadBytesNeeded = lPlaintext[lBytesOfCiphertext-1]
+
+    return lPlaintext[0:lBytesOfCiphertext-lPadBytesNeeded]
 
 
 def is_unprintable(pBytes: bytearray) -> bool:

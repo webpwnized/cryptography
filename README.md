@@ -1,6 +1,6 @@
 # Shifty
 
-An Implementation of Shift Cipher
+_An implementation of the shift cipher system. Each plaintext character is shifted the same number of bytes as determined by the key. The shift occurs with respect to the modulus._
 
 Usage: shifty.py [-h] (-e | -d) (-k KEY | -b) [-if {character,binary,base64}]
                  [-of {character,binary,base64}] [-v] [-i INPUT_FILE]
@@ -28,6 +28,23 @@ Optional arguments:
     -v, --verbose         Enables verbose output
     -i INPUT_FILE, --input-file INPUT_FILE
                         Read INPUT from an input file
+
+**Encrypt the word hello with ceasar cipher:**
+
+`python shifty.py --encrypt --key 3 --verbose hello`
+
+**Decrypt the world hello with key 3:**
+
+`python shifty.py --decrypt --key 3 khoor`
+
+**Bruteforce the world hello with key 3:**
+
+`python shifty.py --decrypt --bruteforce khoor`
+
+**Example using input from file, redirecting output to file and working with binary input. Combine these features to suit.
+Encrypt the contents of file binary-input.txt:**
+
+`python shifty.py --encrypt --key 3 --input-format=binary --output-format=binary --input-file binary-input.txt > binary-output.bin`
 
 # Affinity
 

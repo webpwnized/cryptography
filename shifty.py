@@ -1,5 +1,5 @@
 import argparse, base64, sys
-
+from argparse import RawTextHelpFormatter
 
 def key_is_involutary(pKey: int, pModulus:int) -> bool:
     # Given e(x) = (x + k) % n and d(x) = (x - k) % n
@@ -87,7 +87,9 @@ def bruteforce_plaintext(pInput: bytearray, pModulus:int, pVerbose: bool) -> Non
 
 if __name__ == '__main__':
 
-    lArgParser = argparse.ArgumentParser(description='Shifty: An implementation of the shift cipher system')
+    lArgParser = argparse.ArgumentParser(description='Shifty: An implementation of the shift cipher system. Each plaintext character is shifted the same number of bytes as determined by the key. The shift occurs with respect to the modulus.',
+                                         epilog='Encrypt the word hello with ceasar cipher:\n\npython shifty.py --encrypt --key 3 --verbose hello\n\nDecrypt the world hello with key 3:\n\npython shifty.py --decrypt --key 3 khoor\n\nBruteforce the world hello with key 3:\n\npython shifty.py --decrypt --bruteforce khoor\n\nExample using input from file and redirecting output to file.\nEncrypt the contents of file binary-input.txt:\n\npython shifty.py --encrypt --key 3 --input-format=binary --output-format=binary --input-file binary-input.txt > binary-output.bin',
+                                         formatter_class=RawTextHelpFormatter)
     lEncryptionActionGroup = lArgParser.add_mutually_exclusive_group(required=True)
     lEncryptionActionGroup.add_argument('-e', '--encrypt', help='Encrypt INPUT. This option requires a KEY.', action='store_true')
     lEncryptionActionGroup.add_argument('-d', '--decrypt', help='Decrypt INPUT. This option requires a KEY or BRUTEFORCE flag.', action='store_true')

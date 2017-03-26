@@ -1,4 +1,5 @@
 import argparse, base64, math
+from argparse import RawTextHelpFormatter
 
 
 TWO_DECIMAL_PLACES = "{0:.2f}"
@@ -148,7 +149,7 @@ def print_byte_analysis(pByte: int, pByteCount: int, pTotalBytes: int, pShowCoun
     lByteString = str(pByte)
     lByteStringLength = len(lByteString)
 
-    if lByteStringLength < 2:
+    if pVerbose and lByteStringLength < 2:
         lByteTab = '\t\t'
     else:
         lByteTab = '\t'
@@ -275,27 +276,43 @@ def print_entropy(pByteCounts: dict, pTotalBytes: int, pVerbose: bool) -> None:
 
 if __name__ == '__main__':
 
-    lArgParser = argparse.ArgumentParser(description='Freek: An implementation of a frequency analyzer and code breaker')
-    lOutputOptions = lArgParser.add_argument_group(title="Output Options", description="Choose the type(s) of output to display")
+    lArgParser = argparse.ArgumentParser(description='Freek: An implementation of a frequency and cryptography analyzer.',
+                                         epilog='For each byte in file encrypted-funny-cat-1.jpg, show count, percent and histogram.\n\npython freak.py -cpm --verbose -i encrypted-funny-cat-1.jpg\n\nFor each byte in file encrypted-funny-cat-1.jpg, show count, percent, histogram and all statistics\n\npython freak.py --show-all --verbose -i encrypted-funny-cat-1.jpg\n\nFor each byte in file encrypted-funny-cat-1.jpg, show all statistics: mean, median, mode, anti-mode, variance, standard deviation, and Shannon entropy\n\npython freak.py --show-statistics --verbose -i encrypted-funny-cat-1.jpg\n\nDetermine the index of coincidence of file encrypted-funny-cat-1.jpg in order to determine the length of a Vigenere password. This only works if the input file is encrypted with the Vigenere file.\n\npython freak.py -ioc --verbose --input-file=encrypted-funny-cat-1.bin\n\nFor each byte in file encrypted-funny-cat-1.jpg, group input into columns. For example, -col 5 groups together byte 1, 6, 11, etc. Analysis is performed independently on each column.\n\npython freak.py -cpm -col 8 --input-file=encrypted-funny-cat-1.bin\n\nFor each byte in file encrypted-funny-cat-1.jpg, group input into columns. For example, -col 5 groups together byte 1, 6, 11, etc. Analysis is performed independently on each column. -t sorts the results then only shows top t results. In this example, the top 5 results.\n\npython freak.py -cpm -col 8 -t 5 --input-file=encrypted-funny-cat-1.bin\n\nTo guess a Vigenere password of length "col", add -g option. This only works if output is grouped into columns first. This example assumes the password is 8 characters long.\n\npython freak.py -cpm -g -t 1 -col 8 --input-file=encrypted-funny-cat-1.bin',
+                                         formatter_class=RawTextHelpFormatter)
+
+    lOutputOptions = lArgParser.add_argument_group(title="Histogram Options", description="Choose the type(s) of histogram output to display")
     lOutputOptions.add_argument('-c', '--show-count', help='Show count for each byte of input', action='store_true')
     lOutputOptions.add_argument('-p', '--show-percent', help='Show percent representation for each byte of input', action='store_true')
     lOutputOptions.add_argument('-m', '--show-histogram', help='Show histogram for each byte of input', action='store_true')
     lOutputOptions.add_argument('-a', '--show-ascii', help='Show ascii representation for each byte of input', action='store_true')
-    lOutputOptions.add_argument('-mean', '--show-mean', help='Show Arithmetic Mean (Average)', action='store_true')
-    lOutputOptions.add_argument('-median', '--show-median', help='Show Median', action='store_true')
-    lOutputOptions.add_argument('-mode', '--show-mode', help='Show Mode (Most popular byte)', action='store_true')
-    lOutputOptions.add_argument('-antimode', '--show-anti-mode', help='Show Anti-Mode (Least popular byte)', action='store_true')
-    lOutputOptions.add_argument('-variance', '--show-variance', help='Show Variance', action='store_true')
-    lOutputOptions.add_argument('-stddev', '--show-standard-deviation', help='Show Standard Deviation', action='store_true')
-    lOutputOptions.add_argument('-e', '--show-entropy', help='Show Shannon entropy', action='store_true')
-    lOutputOptions.add_argument('-ioc', '--show-ioc', help='Show kappa (kappa) index of coincidence', action='store_true')
-    lOutputOptions.add_argument('-stats', '--show-statistics', help='Show mean, median, mode, variance and standard deviation for each byte of input and Shannon entropy for input. Equivalent to -e -mean -median -mode -variance -stddev.', action='store_true')
-    lOutputOptions.add_argument('-all', '--show-all', help='Show statistics, count, ascii, percent represenation, histogram for each byte of input and Shannon entropy for input. Does NOT include index of coincidence. Equivalent to -cpmae -mean -median -mode -variance -stddev.', action='store_true')
-    lArgParser.add_argument('-t', '--top-frequencies', help='Only display top X frequencies. Particuarly useful when combined with columnar analysis or when less important bytes clutter analysis.', action='store', type=int)
-    lArgParser.add_argument('-g', '--show-guesses', help='Show ascii representation for top byte of input. Tries ASCII lower, upper and numeric translations. Only works with -t/--top-frequencies.', action='store_true')
-    lArgParser.add_argument('-col', '--columnar-analysis', help='Break INPUT into X columns and perform analysis on columns. Particuarly useful against polyalphabetic stream ciphers.', action='store', type=int)
-    lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
-    lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store', type=str)
+    lOutputOptions.add_argument('-all', '--show-all', help='Show statistics, count, ascii, percent represenation, histogram for each byte of input and Shannon entropy for input. Does NOT include index of coincidence or show ascii. Equivalent to -cpme -mean -median -mode -variance -stddev.', action='store_true')
+
+    lStatisticsOptions = lArgParser.add_argument_group(title="Statistics Options", description="Choose the type(s) of statistical output to display")
+
+    lStatisticsOptions.add_argument('-mean', '--show-mean', help='Show Arithmetic Mean (Average)', action='store_true')
+    lStatisticsOptions.add_argument('-median', '--show-median', help='Show Median', action='store_true')
+    lStatisticsOptions.add_argument('-mode', '--show-mode', help='Show Mode (Most popular byte)', action='store_true')
+    lStatisticsOptions.add_argument('-antimode', '--show-anti-mode', help='Show Anti-Mode (Least popular byte)', action='store_true')
+    lStatisticsOptions.add_argument('-variance', '--show-variance', help='Show Variance', action='store_true')
+    lStatisticsOptions.add_argument('-stddev', '--show-standard-deviation', help='Show Standard Deviation', action='store_true')
+    lStatisticsOptions.add_argument('-e', '--show-entropy', help='Show Shannon entropy', action='store_true')
+    lStatisticsOptions.add_argument('-stats', '--show-statistics', help='Show mean, median, mode, variance and standard deviation for each byte of input and Shannon entropy for input. Equivalent to -e -mean -median -mode -variance -stddev.', action='store_true')
+
+    lIOCOptions = lArgParser.add_argument_group(title="Index of Coincidence Options", description="Choose the type(s) of IOC output to display")
+
+    lIOCOptions.add_argument('-ioc', '--show-ioc', help='Show kappa (kappa) index of coincidence', action='store_true')
+
+    lColumnarAnalysisOptions = lArgParser.add_argument_group(title="Columnar Analysis Options", description="Choose the type(s) of output to display")
+
+    lColumnarAnalysisOptions.add_argument('-t', '--top-frequencies', help='Only display top X frequencies. Particuarly useful when combined with columnar analysis or when less important bytes clutter analysis.', action='store', type=int)
+    lColumnarAnalysisOptions.add_argument('-g', '--show-guesses', help='Show ascii representation for top byte of input. Tries ASCII lower, upper and numeric translations. Only works with -t/--top-frequencies.', action='store_true')
+    lColumnarAnalysisOptions.add_argument('-col', '--columnar-analysis', help='Break INPUT into X columns and perform analysis on columns. Particuarly useful against polyalphabetic stream ciphers.', action='store', type=int)
+
+    lOtherOptions = lArgParser.add_argument_group(title="Other Options", description="Choose other options")
+
+    lOtherOptions.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
+    lOtherOptions.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store', type=str)
+
     lInputSource = lArgParser.add_mutually_exclusive_group(required='True')
     lInputSource.add_argument('-i', '--input-file', help='Read INPUT to analyze from an input file', action='store', type=str)
     lInputSource.add_argument('INPUT', nargs='?', help='INPUT to analyze', action='store')
@@ -305,7 +322,7 @@ if __name__ == '__main__':
         lArgs.show_entropy = lArgs.show_mean = lArgs.show_median = lArgs.show_mode = lArgs.show_anti_mode = lArgs.show_variance = lArgs.show_standard_deviation = True
 
     if lArgs.show_all:
-        lArgs.show_percent = lArgs.show_histogram = lArgs.show_ascii = lArgs.show_count = lArgs.show_entropy = lArgs.show_mean = lArgs.show_median = lArgs.show_mode = lArgs.show_anti_mode = lArgs.show_variance = lArgs.show_standard_deviation = True
+        lArgs.show_percent = lArgs.show_histogram = lArgs.show_count = lArgs.show_entropy = lArgs.show_mean = lArgs.show_median = lArgs.show_mode = lArgs.show_anti_mode = lArgs.show_variance = lArgs.show_standard_deviation = True
 
     if lArgs.show_percent is False and lArgs.show_histogram is False \
             and lArgs.show_ascii is False and lArgs.show_count is False and lArgs.show_ioc is False \

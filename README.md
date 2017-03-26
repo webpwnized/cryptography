@@ -132,7 +132,7 @@ _An implementation of the vigenere cipher system. A key is provided. Each byte o
 
 # Substitute
 
-    An implementation of Substitution Cipher
+_An implementation of Substitution Cipher_
     
 **Usage**: substitute.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
                      [-of {character,binary,base64}] [-v] [-i INPUT_FILE]
@@ -161,7 +161,7 @@ _An implementation of the vigenere cipher system. A key is provided. Each byte o
 
 # Hilarity
 
-    An implementation of the Hill cipher system
+_An implementation of the Hill cipher system_
 
 **Required arguments:**
     
@@ -218,58 +218,103 @@ _An implementation of the css cipher system using two linear feedback shift regi
 
 # Freak
 
-_Byte frequency analyzer_
+_An implementation of a frequency and cryptography analyzer_
 
-**Usage**: freak.py [-h] [-c] [-p] [-m] [-a] [-ioc] [-all] [-t TOP_FREQUENCIES]
-                [-g] [-col COLUMNAR_ANALYSIS] [-v]
+**Usage**: freak.py [-h] [-c] [-p] [-m] [-a] [-all] [-mean] [-median] [-mode]
+                [-antimode] [-variance] [-stddev] [-e] [-stats] [-ioc]
+                [-t TOP_FREQUENCIES] [-g] [-col COLUMNAR_ANALYSIS] [-v]
                 [-if {character,binary,base64}] [-i INPUT_FILE]
                 [INPUT]
-
+                
 **Required arguments:**
-    
+
     INPUT                 INPUT to analyze
 
 **Optional arguments:**
 
     -h, --help            show this help message and exit
-    -t TOP_FREQUENCIES, --top-frequencies TOP_FREQUENCIES
-                        Only display top X frequencies. Particuarly useful
-                        when combined with columnar analysis or when less
-                        important bytes clutter analysis.
-    -g, --show-guesses    Show ascii representation for top byte of input. Tries
-                        ASCII lower, upper and numeric translations. Only
-                        works with -t/--top-frequencies.
-    -col COLUMNAR_ANALYSIS, --columnar-analysis COLUMNAR_ANALYSIS
-                        Break INPUT into X columns and perform analysis on
-                        columns. Particuarly useful against polyalphabetic
-                        stream ciphers.
-    -v, --verbose         Enables verbose output
-    -if {character,binary,base64}, --input-format {character,binary,base64}
-                        Input format can be character, binary, or base64
     -i INPUT_FILE, --input-file INPUT_FILE
                         Read INPUT to analyze from an input file
-    
-    Output Options:
-    Choose the type(s) of output to display
+
+**Optional Histogram Options:**
+
+    Choose the type(s) of histogram output to display
     
     -c, --show-count      Show count for each byte of input
     -p, --show-percent    Show percent representation for each byte of input
     -m, --show-histogram  Show histogram for each byte of input
     -a, --show-ascii      Show ascii representation for each byte of input
-    -mean, --show-mean    Show Arithmetic Mean (Average)
-    -median, --show-median              Show Median
-    -mode, --show-mode                  Show Mode
-    -variance, --show-variance          Show Variance
-    -stddev, --show-standard-deviation  Show Standard Deviation
-    -e, --show-entropy    Show Shannon entropy
-    -ioc, --show-ioc      Show kappa (delta) index of coincidence
-    -all, --show-all      Show count, ascii, percent represenation, histogram
-                        for each byte of input and Shannon entropy for input.
-                        Does NOT include index of coincidence. Equivalent to
-                        -cpmae.
+    -all, --show-all      Show statistics, count, ascii, percent represenation, histogram for each byte of input and Shannon entropy for input. Does NOT include index of coincidence. Equivalent to -cpmae -mean -median -mode -variance -stddev.
 
-python freak.py -cpm -g -t 1 -col 8 --input-file=encrypted-funny-cat-1.bin
-python freak.py -ioc --input-file=encrypted-funny-cat-1.bin
+**Optional Statistics Options:**
+
+    Choose the type(s) of statistical output to display
+    
+    -mean, --show-mean    Show Arithmetic Mean (Average)
+    -median, --show-median
+                        Show Median
+    -mode, --show-mode    Show Mode (Most popular byte)
+    -antimode, --show-anti-mode
+                        Show Anti-Mode (Least popular byte)
+    -variance, --show-variance
+                        Show Variance
+    -stddev, --show-standard-deviation
+                        Show Standard Deviation
+    -e, --show-entropy    Show Shannon entropy
+    -stats, --show-statistics
+                        Show mean, median, mode, variance and standard deviation for each byte of input and Shannon entropy for input. Equivalent to -e -mean -median -mode -variance -stddev.
+
+**Optional Index of Coincidence Options:**
+
+    Choose the type(s) of IOC output to display
+    
+    -ioc, --show-ioc      Show kappa (kappa) index of coincidence
+
+**Optional Columnar Analysis Options:**
+
+    Choose the type(s) of output to display
+    
+    -t TOP_FREQUENCIES, --top-frequencies TOP_FREQUENCIES
+                        Only display top X frequencies. Particuarly useful when combined with columnar analysis or when less important bytes clutter analysis.
+    -g, --show-guesses    Show ascii representation for top byte of input. Tries ASCII lower, upper and numeric translations. Only works with -t/--top-frequencies.
+    -col COLUMNAR_ANALYSIS, --columnar-analysis COLUMNAR_ANALYSIS
+                        Break INPUT into X columns and perform analysis on columns. Particuarly useful against polyalphabetic stream ciphers.
+
+**Optional Other Options:**
+
+    Choose other options
+    
+    -v, --verbose         Enables verbose output
+    -if {character,binary,base64}, --input-format {character,binary,base64}
+                        Input format can be character, binary, or base64
+
+**For each byte in file encrypted-funny-cat-1.jpg, show count, percent and histogram.**
+
+`python freak.py -cpm --verbose -i encrypted-funny-cat-1.jpg`
+
+**For each byte in file encrypted-funny-cat-1.jpg, show count, percent, histogram and all statistics**
+ 
+`python freak.py --show-all --verbose -i encrypted-funny-cat-1.jpg`
+
+**For each byte in file encrypted-funny-cat-1.jpg, show all statistics: mean, median, mode, anti-mode, variance, standard deviation, and Shannon entropy** 
+
+`python freak.py --show-statistics --verbose -i encrypted-funny-cat-1.jpg`
+
+**Determine the index of coincidence of file encrypted-funny-cat-1.jpg in order to determine the length of a Vigenere password. This only works if the input file is encrypted with the Vigenere file.**
+
+`python freak.py -ioc --verbose --input-file=encrypted-funny-cat-1.bin`
+
+**For each byte in file encrypted-funny-cat-1.jpg, group input into columns. For example, -col 5 groups together byte 1, 6, 11, etc. Analysis is performed independently on each column.** 
+
+`python freak.py -cpm -col 8 --input-file=encrypted-funny-cat-1.bin`
+
+**For each byte in file encrypted-funny-cat-1.jpg, group input into columns. For example, -col 5 groups together byte 1, 6, 11, etc. Analysis is performed independently on each column. -t sorts the results then only shows top t results. In this example, the top 5 results.** 
+
+`python freak.py -cpm -col 8 -t 5 --input-file=encrypted-funny-cat-1.bin`
+
+**To guess a Vigenere password of length "col", add -g option. This only works if output is grouped into columns first. This example assumes the password is 8 characters long.** 
+
+`python freak.py -cpm -g -t 1 -col 8 --input-file=encrypted-funny-cat-1.bin`
 
 # Maitre D
 

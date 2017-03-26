@@ -1,8 +1,18 @@
 import argparse, base64, sys
+from argparse import RawTextHelpFormatter
 
 
 def do_derive_key(pLetter: str, pModulus:int) -> int:
-    return (ord(pLetter.lower()) - 97) % pModulus
+    # Try our best to normalize the key. This action potentially lowers the strength of the cipher
+    # but the goal is to make learning the concepts easier
+    if pLetter.isdigit():
+        return (ord(pLetter) - 48) % pModulus
+    elif pLetter.islower():
+        return (ord(pLetter) - 97) % pModulus
+    elif pLetter.isupper():
+        return (ord(pLetter) - 65) % pModulus
+    else:
+        return ord(pLetter) % pModulus
 
 
 def derive_key(pKey: str, pModulus:int) -> bytearray:
@@ -106,7 +116,9 @@ def print_ciphertext(pInput: bytearray, pKey: bytearray, pModulus:int, pVerbose:
 
 if __name__ == '__main__':
 
-    lArgParser = argparse.ArgumentParser(description='Visionary: An implementation of the vigenere cipher system')
+    lArgParser = argparse.ArgumentParser(description='Visionary: An implementation of the vigenere cipher system. A key is provided. Each byte of the key shifts the respective byte of plaintext. If the plaintext is longer than the key, the key bytes start over. The key derivation normalizes the key weakening the cipher. For example, A = a = 1 = shift plaintext 1 byte. The shifts occurs with respect to the modulus.',
+                                         epilog='Encrypt the word helloworld with key 12345:\n\npython visionary.py --encrypt --key 12345 --verbose "helloworld"\n\nDecrypt the world helloworld with key 12345:\n\npython visionary.py --decrypt --key 12345 "igoptxqupi"\n\nExample using input from file, redirecting output to file and working with binary input. Combine these features to suit.\nEncrypt the contents of file funny-cat-1.jpg:\n\npython visionary.py --encrypt --key rocky329 --input-format=binary --output-format=binary --input-file=funny-cat-1.jpg > encrypted-funny-cat-1.bin',
+                                         formatter_class=RawTextHelpFormatter)
     lEncryptionActionGroup = lArgParser.add_mutually_exclusive_group(required=True)
     lEncryptionActionGroup.add_argument('-e', '--encrypt', help='Encrypt INPUT. This option requires a KEY.', action='store_true')
     lEncryptionActionGroup.add_argument('-d', '--decrypt', help='Decrypt INPUT. This option requires a KEY or BRUTEFORCE flag.', action='store_true')

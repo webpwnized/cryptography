@@ -184,7 +184,7 @@ def print_analysis(pInput: bytearray, pShowCount: bool, pShowHistogram: bool, pS
                 if pShowGuesses and lAnalyzingMostPopularByte:
                     # For JPEG we assume the mode of the plaintext is 0,
                     # so we guess the mode of the cipher text is offset by X bytes
-                    print('\nBest guess\tLowercase: ' + chr((lByte + 97) % MODULUS) + '\tUppercase: ' + chr((lByte + 65) % MODULUS))
+                    print('\nBest guess\tLowercase: ' + chr((lByte + 97) % MODULUS) + '\tUppercase: ' + chr((lByte + 65) % MODULUS) + '\tNumeric: ' + chr((lByte + 48) % MODULUS))
                     lAnalyzingMostPopularByte = False
                 # end if
                 print_byte_analysis(lByte, lByteCount, lTotalBytes, pShowCount, pShowHistogram, pShowASCII, pShowPercent, pVerbose)

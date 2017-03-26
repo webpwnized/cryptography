@@ -77,7 +77,7 @@ Optional arguments:
 
 # Visionary
 
-    An implementation of Vigenère Cipher
+_An implementation of the vigenere cipher system. A key is provided. Each byte of the key shifts the respective byte of plaintext. If the plaintext is longer than the key, the key bytes start over. The key derivation normalizes the key weakening the cipher. For example, A = a = 1 = shift plaintext 1 byte. The shifts occurs with respect to the modulus._
 
 Usage: visionary.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
                     [-of {character,binary,base64}] [-v] [-i INPUT_FILE]
@@ -103,6 +103,19 @@ Optional arguments:
     -v, --verbose         Enables verbose output
     -i INPUT_FILE, --input-file INPUT_FILE
                         Read INPUT from an input file
+
+**Encrypt the phrase helloworld with key 12345:**
+
+`python visionary.py --encrypt --key 12345 --verbose "helloworld"`
+
+**Decrypt the phrase helloworld with key 12345:**
+
+`python visionary.py --decrypt --key 12345 "igoptxqupi"`
+
+**Example using input from file, redirecting output to file and working with binary input. Combine these features to suit. Encrypt the contents of file funny-cat-1.jpg:**
+
+`python visionary.py --encrypt --key rocky329 --input-format=binary --output-format=binary --input-file=funny-cat-1.jpg > encrypted-funny-cat-1.bin`
+
 
 # Substitute
 
@@ -239,6 +252,9 @@ Optional arguments:
                         for each byte of input and Shannon entropy for input.
                         Does NOT include index of coincidence. Equivalent to
                         -cpmae.
+
+python freak.py -cpm -g -t 1 -col 8 --input-file=encrypted-funny-cat-1.bin
+python freak.py -ioc --input-file=encrypted-funny-cat-1.bin
 
 # Maitre D
 

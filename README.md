@@ -2,15 +2,15 @@
 
 _An implementation of the shift cipher system. Each plaintext character is shifted the same number of bytes as determined by the key. The shift occurs with respect to the modulus._
 
-Usage: shifty.py [-h] (-e | -d) (-k KEY | -b) [-if {character,binary,base64}]
+**Usage**: shifty.py [-h] (-e | -d) (-k KEY | -b) [-if {character,binary,base64}]
                  [-of {character,binary,base64}] [-v] [-i INPUT_FILE]
                  [INPUT]
 
-Required arguments:
+**Required arguments:**
   
     INPUT                 Input value to encrypt/decrypt
 
-Optional arguments:
+**Optional arguments:**
 
     -h, --help            show this help message and exit
     -e, --encrypt         Encrypt INPUT. This option requires a KEY.
@@ -48,17 +48,17 @@ Encrypt the contents of file binary-input.txt:**
 
 # Affinity
 
-    An implementation of Affine Cipher
+_An implementation of the affine cipher system. A key is provided as a vector of two integers. The key integers a,b determine the shift of each byte of the plaintext by the formula ax + b modulo MODULUS. The shifts occurs with respect to the modulus._
 
-Usage: affinity.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
+**Usage**: affinity.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
                    [-of {character,binary,base64}] [-v] [-i INPUT_FILE]
                    [INPUT]
 
-Required arguments:
+**Required arguments:**
 
     INPUT                 Input value to encrypt/decrypt
 
-Optional arguments:
+**Optional arguments:**
 
     -h, --help            show this help message and exit
     -e, --encrypt         Encrypt INPUT. This option requires a KEY.
@@ -75,19 +75,32 @@ Optional arguments:
     -i INPUT_FILE, --input-file INPUT_FILE
                         Read INPUT from an input file
 
+**Encrypt the word hello with key 3,1:**
+
+`python affinity.py --encrypt --key 3,1 --verbose "hello"`
+
+**Decrypt the world hello with key 3,1:**
+
+`python affinity.py --decrypt --key 3,1 --verbose "90EEN"`
+
+**Example using input from file, redirecting output to file and working with binary input. Combine these features to suit.
+Encrypt the contents of file funny-cat-1.jpg:**
+
+`python affinity.py --encrypt --key 3,1 --input-format=binary --output-format=binary --input-file funny-cat-1.jpg > encrypted-funny-cat-1.bin`
+
 # Visionary
 
 _An implementation of the vigenere cipher system. A key is provided. Each byte of the key shifts the respective byte of plaintext. If the plaintext is longer than the key, the key bytes start over. The key derivation normalizes the key weakening the cipher. For example, A = a = 1 = shift plaintext 1 byte. The shifts occurs with respect to the modulus._
 
-Usage: visionary.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
+**Usage**: visionary.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
                     [-of {character,binary,base64}] [-v] [-i INPUT_FILE]
                     [INPUT]
 
-Required arguments:
+**Required arguments:**
     
     INPUT                 Input value to encrypt/decrypt
 
-Optional arguments:
+**Optional arguments:**
 
     -h, --help            show this help message and exit
     -e, --encrypt         Encrypt INPUT. This option requires a KEY.
@@ -121,14 +134,15 @@ Optional arguments:
 
     An implementation of Substitution Cipher
     
-Usage: substitute.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
+**Usage**: substitute.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
                      [-of {character,binary,base64}] [-v] [-i INPUT_FILE]
                      [INPUT]
 
-Required arguments:
-  INPUT                 Input value to encrypt/decrypt
+**Required arguments:**
 
-Optional arguments:
+    INPUT                 Input value to encrypt/decrypt
+
+**Optional arguments:**
 
     -h, --help            show this help message and exit
     -e, --encrypt         Encrypt INPUT. This option requires a KEY.
@@ -149,11 +163,11 @@ Optional arguments:
 
     An implementation of the Hill cipher system
 
-Required arguments:
+**Required arguments:**
     
     INPUT                 Input value to encrypt/decrypt
 
-Optional arguments:
+**Optional arguments:**
 
     -h, --help            show this help message and exit
     -e, --encrypt         Encrypt INPUT. This option requires a KEY.
@@ -177,13 +191,14 @@ Optional arguments:
 
 # Content Scrambling System
 
-    An implementation of the css cipher system using two
-    linear feedback shift registers
+_An implementation of the css cipher system using two linear feedback shift registers_
 
-    Required arguments:
+**Required arguments:**
+
       INPUT                 Input value to encrypt/decrypt
 
-    Optional arguments:
+**Optional arguments:**
+
       -h, --help            show this help message and exit
       -e, --encrypt         Encrypt INPUT. This option requires a KEY.
       -d, --decrypt         Decrypt INPUT. This option requires a KEY.
@@ -203,18 +218,18 @@ Optional arguments:
 
 # Freak
 
-    Byte frequency analyzer
+_Byte frequency analyzer_
 
-Usage: freak.py [-h] [-c] [-p] [-m] [-a] [-ioc] [-all] [-t TOP_FREQUENCIES]
+**Usage**: freak.py [-h] [-c] [-p] [-m] [-a] [-ioc] [-all] [-t TOP_FREQUENCIES]
                 [-g] [-col COLUMNAR_ANALYSIS] [-v]
                 [-if {character,binary,base64}] [-i INPUT_FILE]
                 [INPUT]
 
-Required arguments:
+**Required arguments:**
     
     INPUT                 INPUT to analyze
 
-Optional arguments:
+**Optional arguments:**
 
     -h, --help            show this help message and exit
     -t TOP_FREQUENCIES, --top-frequencies TOP_FREQUENCIES
@@ -258,18 +273,18 @@ python freak.py -ioc --input-file=encrypted-funny-cat-1.bin
 
 # Maitre D
 
-A matrix variant calculator within modulo MODULUS
+_A matrix variant calculator within modulo MODULUS_
 
-Usage: maitred.py [-h] [-d] [-id] [-mi] [-c] [-a] [-i] [-all] [-v]
+**Usage**: maitred.py [-h] [-d] [-id] [-mi] [-c] [-a] [-i] [-all] [-v]
                   [-m MODULUS]
                   [INPUT]
 
-Required arguments:
+**Required arguments:**
 
     INPUT                 Input matrix of integers. The matrix must be square.
                         For example a 2 X 2 matrix could be 1, 2, 3, 4
 
-Optional arguments:
+**Optional arguments:**
 
     -h, --help          Show this help message and exit
     -d, --determinant   Calculate the determinant of the matrix modulo
@@ -293,16 +308,16 @@ Optional arguments:
 
  # Utility Belt
  
-    A variety of functions helpful when studying basic crytography
+_A variety of functions helpful when studying basic crytography_
 
-Required arguments:
+**Required arguments:**
 
     INPUT               Integer input value of which to calculate answer.
                         Required. This program will normalize values outside
                         of Z-modulus. For example, -1 mod 26 will be converted
                         to 25.
 
-Optional arguments:
+**Optional arguments:**
 
     -h, --help            show this help message and exit
     -rp, --relative-primes
@@ -348,19 +363,19 @@ Optional arguments:
 
 # Transference
 
-usage: transference.py [-h] [-tft] [-lat] [-all] [-v] INPUT
+**Usage**: transference.py [-h] [-tft] [-lat] [-all] [-v] INPUT
 
     A tool to help visualize s-boxes (substitution boxes or transfer functions)
 
-Required arguments:
+**Required arguments:**
 
-    INPUT                 The substitution table (s-box) represented as a comma
+    INPUT               The substitution table (s-box) represented as a comma
                         delimted list of integers. The length of the list is
                         the number of bits in the substitution. Required.
                         Example: 3,2,0,1 means substitute 3 for 0, 2 for 1, 0
                         for 2 and 1 for 3.
 
-Optional arguments:
+**Optional arguments:**
 
     -h, --help            show this help message and exit
     -tft, --transfer-function-table

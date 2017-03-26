@@ -85,6 +85,11 @@ def bruteforce_plaintext(pInput: bytearray, pModulus:int, pVerbose: bool) -> Non
         if not pVerbose: print()
 
 
+def derive_key(pKeyString: str, pModulus: int) -> int:
+
+    return int(pKeyString) % pModulus
+
+
 if __name__ == '__main__':
 
     lArgParser = argparse.ArgumentParser(description='Shifty: An implementation of the shift cipher system. Each plaintext character is shifted the same number of bytes as determined by the key. The shift occurs with respect to the modulus.',
@@ -114,7 +119,7 @@ if __name__ == '__main__':
         lArgParser.error("If -d/--decrypt selected, either -k/--key or -b/--bruteforce is required")
 
     if lArgs.key:
-        lKey = int(lArgs.key)
+        lKey = derive_key(lArgs.key, lModulus)
 
     if lArgs.input_file:
         if lArgs.input_format == 'base64':

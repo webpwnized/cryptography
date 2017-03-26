@@ -1,4 +1,5 @@
 import argparse, base64, sys
+from argparse import RawTextHelpFormatter
 
 
 def get_relative_primes(pModulus: int) -> list:
@@ -85,18 +86,18 @@ def get_gcd(x: int, y: int) -> int:
     # The GCD of a,b is the same as the GCD of a and the remainder of dividing a by b
     return get_gcd(y, x % y)
 
-def derive_key(lKeyString: str) -> bytearray:
+def derive_key(pKeyString: str, pModulus: int) -> bytearray:
 
-    lKey = bytearray(map(int, lKeyString.split(',')))
+    lKey = bytearray(map(int, pKeyString.split(',')))
     for lSubkey in lKey:
         if type(lSubkey) != int:
             raise Exception('Keys not of type integer')
 
     if abs(lKey[0]) >= lModulus:
-        lKey[0] = lKey[0] % lModulus
+        lKey[0] = lKey[0] % pModulus
 
     if abs(lKey[1]) >= lModulus:
-        lKey[1] = lKey[1] % lModulus
+        lKey[1] = lKey[1] % pModulus
 
     return lKey
 
@@ -213,12 +214,13 @@ def print_ciphertext(pInput: bytearray, pKey: bytearray, pModulus:int, pVerbose:
 
 if __name__ == '__main__':
 
-    lArgParser = argparse.ArgumentParser(description='Affinity: An implementation of the affine cipher system')
+    lArgParser = argparse.ArgumentParser(description='Affinity: An implementation of the affine cipher system. A key is provided as a vector of two integers. The key integers a,b determine the shift of each byte of the plaintext by the formula ax + b modulo MODULUS. The shifts occurs with respect to the modulus.',
+                                         epilog='Encrypt the word hello with key 3,1:\n\npython affinity.py --encrypt --key 3,1 --verbose "hello"\n\nDecrypt the world hello with key 3,1:\n\npython affinity.py --decrypt --key 3,1 --verbose "90EEN"\n\nExample using input from file, redirecting output to file and working with binary input. Combine these features to suit.\nEncrypt the contents of file funny-cat-1.jpg:\n\npython affinity.py --encrypt --key 3,1 --input-format=binary --output-format=binary --input-file test-files\funny-cat-1.jpg > encrypted-funny-cat-1.bin',
+                                         formatter_class=RawTextHelpFormatter)
     lEncryptionActionGroup = lArgParser.add_mutually_exclusive_group(required=True)
     lEncryptionActionGroup.add_argument('-e', '--encrypt', help='Encrypt INPUT. This option requires a KEY.', action='store_true')
-    lEncryptionActionGroup.add_argument('-d', '--decrypt', help='Decrypt INPUT. This option requires a KEY or BRUTEFORCE flag.', action='store_true')
-    lKeyOrBruteforceActionGroup = lArgParser.add_mutually_exclusive_group(required=True)
-    lKeyOrBruteforceActionGroup.add_argument('-k', '--key', help='Encryption/Decryption key in a,b format', type=str, action='store')
+    lEncryptionActionGroup.add_argument('-d', '--decrypt', help='Decrypt INPUT. This option requires a KEY.', action='store_true')
+    lArgParser.add_argument('-k', '--key', help='Encryption/Decryption key in a,b format. Both a and b must be of type integer.', type=str, action='store')
     lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store', type=str)
     lArgParser.add_argument('-of', '--output-format', help='Output format can be character, binary, or base64. If input format provided, but output format is not provided, output format defaults to match input format.', choices=['character', 'binary', 'base64'], action='store', type=str)
     lArgParser.add_argument('-m', '--modulus', help='Modulus. Default is 256.', action='store', default=256, type=int)
@@ -237,7 +239,7 @@ if __name__ == '__main__':
 
     if lArgs.key:
         try:
-            lKey = derive_key(lKeyString)
+            lKey = derive_key(lKeyString, lModulus)
         except:
             lArgParser.error("Affine cipher requires two keys of type integer. Input key in a,b format. i.e. --key=1,1")
 
@@ -278,10 +280,10 @@ if __name__ == '__main__':
             lRelativePrimes = get_relative_primes(lModulus)
             lNumberPossibleKeys = lNumberOfInverses * lModulus
             lInvolutaryKeys = get_involutary_keys(lRelativePrimes, lModulus)
-            lArgParser.error("Affine cipher requires the multiplicative key parameter {} be relatively prime to the modulus {}. "
-                             "The GCD of {} and {} is {} rather than 1. Please choose a multiplicative key parameter relatively prime to {}. "
-                             "There are {} integers relatively prime to {}. You may pick from {}. "
-                             "Since the value of the additive key parameter can be any value between 0 and {} ({} possible values), there are {} * {} = {} possible keys. "
+            lArgParser.error("Affine cipher requires the multiplicative key parameter {} be relatively prime to the modulus {}.\n\n"
+                             "The GCD of {} and {} is {} rather than 1. Please choose a multiplicative key parameter relatively prime to {}.\n\n"
+                             "There are {} integers relatively prime to {}.\n\nYou may pick from {}.\n\n"
+                             "Since the value of the additive key parameter can be any value between 0 and {} ({} possible values), there are {} * {} = {} possible keys.\n\n"
                              "Watch out for involutary keys {}.".format(a, lModulus, a, lModulus, lGCD, lModulus, lNumberOfInverses, lModulus, lRelativePrimes, lModulus - 1, lModulus, lNumberOfInverses, lModulus, lNumberPossibleKeys, lInvolutaryKeys))
 
         print_ciphertext(lInput, lKey, lModulus, lArgs.verbose, lArgs.output_format, lKeyString)

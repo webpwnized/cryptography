@@ -2,8 +2,9 @@
 
 _An implementation of the shift cipher system. Each plaintext character is shifted the same number of bytes as determined by the key. The shift occurs with respect to the modulus._
 
-**Usage**: shifty.py [-h] (-e | -d) (-k KEY | -b) [-if {character,binary,base64}]
-                 [-of {character,binary,base64}] [-v] [-i INPUT_FILE]
+**Usage**: python shifty.py [-h] (-e | -d) (-k KEY | -b) [-if {character,binary,base64}]
+                 [-of {character,binary,base64}] [-m MODULUS] [-v]
+                 [-i INPUT_FILE]
                  [INPUT]
 
 **Required arguments:**
@@ -50,8 +51,9 @@ Encrypt the contents of file binary-input.txt:**
 
 _An implementation of the affine cipher system. A key is provided as a vector of two integers. The key integers a,b determine the shift of each byte of the plaintext by the formula ax + b modulo MODULUS. The shifts occurs with respect to the modulus._
 
-**Usage**: affinity.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
-                   [-of {character,binary,base64}] [-v] [-i INPUT_FILE]
+**Usage**: python affinity.py [-h] (-e | -d) [-k KEY] [-if {character,binary,base64}]
+                   [-of {character,binary,base64}] [-m MODULUS] [-v]
+                   [-i INPUT_FILE]
                    [INPUT]
 
 **Required arguments:**
@@ -92,7 +94,7 @@ Encrypt the contents of file funny-cat-1.jpg:**
 
 _An implementation of the vigenere cipher system. A key is provided. Each byte of the key shifts the respective byte of plaintext. If the plaintext is longer than the key, the key bytes start over. The key derivation normalizes the key weakening the cipher. For example, A = a = 1 = shift plaintext 1 byte. The shifts occurs with respect to the modulus._
 
-**Usage**: visionary.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
+**Usage**: python visionary.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
                     [-of {character,binary,base64}] [-v] [-i INPUT_FILE]
                     [INPUT]
 
@@ -134,7 +136,7 @@ _An implementation of the vigenere cipher system. A key is provided. Each byte o
 
 _An implementation of Substitution Cipher_
     
-**Usage**: substitute.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
+**Usage**: python substitute.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
                      [-of {character,binary,base64}] [-v] [-i INPUT_FILE]
                      [INPUT]
 
@@ -159,10 +161,27 @@ _An implementation of Substitution Cipher_
     -i INPUT_FILE, --input-file INPUT_FILE
                         Read INPUT from an input file
 
+**Encrypt the phrase helloworld with key 3,2,0,1,4:**
+
+python substitute.py --encrypt --key 3,2,0,1,4 --verbose helloworld
+
+**Decrypt the phrase helloworld with key 3,2,0,1,4:**
+
+python substitute.py --decrypt --key 3,2,0,1,4 --verbose llheolrwod
+
+**Example using input from file, redirecting output to file and working with binary input. Combine these features to suit. Encrypt the contents of file binary-input.txt:**
+
+python substitute.py --encrypt --key 3,2,0,1,4 --input-format=binary --output-format=binary --input-file=binary-input.txt > encrypted-binary-input.bin
+
 # Hilarity
 
 _An implementation of the Hill cipher system_
 
+**Usage**: python hilarity.py [-h] (-e | -d) -k KEY [-if {character,binary,base64}]
+                   [-of {character,binary,base64}] [-m MODULUS] [-v]
+                   [-i INPUT_FILE]
+                   [INPUT]
+                   
 **Required arguments:**
     
     INPUT                 Input value to encrypt/decrypt
@@ -189,10 +208,29 @@ _An implementation of the Hill cipher system_
     -i INPUT_FILE, --input-file INPUT_FILE
                         Read INPUT from an input file
 
+**Encrypt the phrase helloworld with key 7,11,3,8:**
+
+python hilarity.py --encrypt --key 7,11,3,8 helloworld
+
+**Decrypt the phrase helloworld with key 7,11,3,8:**
+
+python hilarity.py --decrypt --key 7,11,3,8 --input-format=base64 B6A4BG59X1UgxA==
+
+**Example using input from file, redirecting output to file and working with binary input. Combine these features to suit. Encrypt the contents of file binary-input.txt:**
+
+python hilarity.py --encrypt --key 7,11,3,8 --input-format=binary --output-format=binary --input-file=binary-input.txt > encrypted-binary-input.bin
+
+
 # Content Scrambling System
 
 _An implementation of the css cipher system using two linear feedback shift registers_
 
+**Usage**: content-scrambing-system.py [-h] (-e | -d) [-k KEY]
+                                   [-if {character,binary,base64}]
+                                   [-of {character,binary,base64}] [-v]
+                                   [-i INPUT_FILE]
+                                   [INPUT]
+          
 **Required arguments:**
 
       INPUT                 Input value to encrypt/decrypt
@@ -215,6 +253,23 @@ _An implementation of the css cipher system using two linear feedback shift regi
       -v, --verbose         Enables verbose output
       -i INPUT_FILE, --input-file INPUT_FILE
                             Read INPUT from an input file
+
+**Encrypt the phrase helloworld with key 25,230,3,64,12:**
+
+python content-scrambing-system.py --encrypt --key 25,230,3,64,12 --verbose helloworld
+
+**Decrypt the phrase helloworld with key 25,230,3,64,12:**
+
+python content-scrambing-system.py --decrypt --key 25,230,3,64,12 --input-format=base64 --output-format=character wr8B+CWpEqgqAw==
+
+**Example using input from file, redirecting output to file and working with binary input. Combine these features to suit. Encrypt the contents of file binary-input.txt:**
+
+python content-scrambing-system.py --encrypt --key 25,230,3,64,12 --input-format=binary --output-format=binary --input-file=test-files\binary-input.txt > encrypted-binary-input.bin
+
+**Example using input from file, redirecting output to file and working with binary input. Combine these features to suit. Decrypt the contents of file encrypted-binary-input.bin:**
+
+python content-scrambing-system.py --decrypt --key 25,230,3,64,12 --input-format=binary --output-format=character --input-file=encrypted-binary-input.bin
+
 
 # Freak
 
@@ -320,7 +375,7 @@ _An implementation of a frequency and cryptography analyzer_
 
 _A matrix variant calculator within modulo MODULUS_
 
-**Usage**: maitred.py [-h] [-d] [-id] [-mi] [-c] [-a] [-i] [-all] [-v]
+**Usage**: python maitred.py [-h] [-d] [-id] [-t] [-mi] [-c] [-a] [-i] [-all] [-phi] [-v]
                   [-m MODULUS]
                   [INPUT]
 
@@ -331,25 +386,31 @@ _A matrix variant calculator within modulo MODULUS_
 
 **Optional arguments:**
 
-    -h, --help          Show this help message and exit
-    -d, --determinant   Calculate the determinant of the matrix modulo
+  -h, --help            show this help message and exit
+  -d, --determinant     Calculate the determinant of the matrix modulo
                         MODULUS. Answer will be in Z-MODULUS.
-    -id, --inverse-determinant
+  -id, --inverse-determinant
                         Calculate the inverse of the determinant of the matrix
                         modulo MODULUS. Answer will be in Z-MODULUS.
-    -t, --transpose     Calculate the transpose of the matrix modulo MODULUS 
-    -mi, --minors       Calculate the minors of the matrix modulo MODULUS
-    -c, --cofactors     Calculate the cofactors of the matrix modulo MODULUS
-    -a, --adjunct       Calculate the adjunct of the matrix modulo MODULUS
-    -i, --inverse       Calculate the inverse of the matrix modulo MODULUS
-    -all, --all         Calculate the determinant, inverse determinant,
+  -t, --transpose       Calculate the transpose of the matrix modulo MODULUS
+  -mi, --minors         Calculate the minors of the matrix modulo MODULUS
+  -c, --cofactors       Calculate the cofactors of the matrix modulo MODULUS
+  -a, --adjunct         Calculate the adjunct of the matrix modulo MODULUS
+  -i, --inverse         Calculate the inverse of the matrix modulo MODULUS
+  -all, --all           Calculate the determinant, inverse determinant,
                         transpose, adjunct and inverse of the matrix modulo
                         MODULUS. Same as -id -dai
-    -phi, --count-invertible-matrices
+  -phi, --count-invertible-matrices
                         Calculate the number of invertible matrices of size
                         INPUT modulo MODULUS.
-    -v, --verbose       Enables verbose output
-    -m MODULUS, --modulus MODULUS   Modulus. Default is 256.
+  -v, --verbose         Enables verbose output
+  -m MODULUS, --modulus MODULUS
+                        Modulus. Default is 256.
+
+**Calculate Matrix, Determinant of Matrix, Inverse of the determinant of Matrix, Transpose Matrix, Minors Matrix, Cofactors Matrix, Adjunct Matrix and Inverse Matrix (mod 26)**
+
+`python maitred.py -all --modulus=26 --verbose 1,4,3,7`
+
 
  # Utility Belt
  

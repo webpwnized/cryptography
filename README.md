@@ -444,12 +444,21 @@ _A variety of functions helpful when studying basic crytography_
     -mi, --mutiplicative-inverse
                         Calculate multiplicative inverse of INPUT modulo
                         MODULUS
+    -fe FAST_EXPONENTIATION, --fast-exponentiation FAST_EXPONENTIATION
+                            Calculate INPUT raised to this POWER modulo MODULUS.
+                            Set -fe/--fast-exponentiation to POWER.
     -mod, --modulo        Calculate modulo of INPUT modulo MODULUS
     -allmods, --all-modulo-calculations
                         Perform all available calculations of INPUT modulo
                         MODULUS
     -m MODULUS, --modulus MODULUS
                         Modulus. Default is 256.
+
+**Options for working in Galois Fields:**
+
+    -fg, --find-generators
+                        Calculate the generators for field of integers defined
+                        by Z-MODULUS
 
 **Options for working with Permutations:**
 
@@ -483,6 +492,14 @@ _A variety of functions helpful when studying basic crytography_
 **Calculate the greatest common divisor and multiplicative inverse of 7 modulo 26. Note that 7 is relatively prime to 26.**
 
 `python utility-belt.py -gcd -mi -m 26 -v 7`
+
+**Calculate 9726 ^ 3533 % 11413 = 5761 using fast exponentiation**
+
+`python utility-belt.py -v -fe 3533 -m 11413 9726`
+
+**Calculate all primitive root generators modulo 7**
+
+`python utility-belt.py -fg -m 7 -v`
 
 **Calculate the permutation cycles, permutation order and invert permutation 3,4,2,0,1**
 

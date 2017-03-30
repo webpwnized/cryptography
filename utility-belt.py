@@ -311,6 +311,106 @@ def print_mutiplicative_inverse(pNormalizedInput: int, pModulus: int, pGCD: int,
             print("NaN")
 
 
+def print_fast_exponentiation(pBase: int, pExponent: int, pModulus: int, pVerbose: bool) -> None:
+    # Fast exponentiation: Given the exponent as a bit array, for each bit in the array, calculate
+    # the answer for the current bit to be:
+    #   if bit is 0: current answer is last answer ^ 2
+    #   if bit is 1: current answer is last answer ^ 2 * base
+    # The final answer is the answer for the last bit
+    # Note: the "first" bit is the MSB and the "last" bit is the LSB
+
+    lExponentBitArray = bin(pExponent)[2:]
+
+    lLastCalculation = 1
+    if pVerbose:
+        print("-\t-----\t------")
+        print("i\te-bit\tAnswer")
+        print("-\t-----\t------")
+    for lIndex, lBit in enumerate(lExponentBitArray):
+        # Shortcut: Regardless we square the last answer
+        lCurrentCalulation = (lLastCalculation ** 2) % pModulus
+        if int(lBit) == 1:
+            lCurrentCalulation = (lCurrentCalulation * pBase) % pModulus
+            if pVerbose:
+                print("{}\t{}\t({} ^ 2) * {} mod {} = {}".format(str(lIndex+1), lBit, lLastCalculation, pBase, pModulus, lCurrentCalulation))
+        else:
+            if pVerbose:
+                print("{}\t{}\t({} ^ 2) mod {} = {}".format(str(lIndex+1), lBit, lLastCalculation, pModulus, lCurrentCalulation))
+        lLastCalculation = lCurrentCalulation
+    # end for
+
+    if pVerbose:
+        print()
+        print("{} raised to the {} power modulo {} is {}".format(pBase, pExponent, pModulus, lCurrentCalulation))
+        print()
+        print("{} ^ {} % {} = {}".format(pBase, pExponent, pModulus, lCurrentCalulation))
+    else:
+        print(lCurrentCalulation)
+
+
+def is_generator(pBase: int, pModulus: int, pVerbose: bool) -> tuple:
+    # If a base number is a generator with respect to GF(pModulus),
+    # raising the base to each of the integers in the ring defined
+    # by pModulus (mod pModulus) will result in a permutation containing
+    # exactly the (pModulus - 1) integers from 1 to (pModulus - 1)
+
+    # Shortcut: Next member of permutation is the last member generated
+    # times the base (mod pModulus). The first member is always the base
+    # to the 1st power, which is always the base itself.
+
+    lMembers = []
+    lMembers.append(pBase)
+    lLastMember = pBase
+    for i in range(2, pModulus):
+        lCurrentMember = (lLastMember * pBase) % pModulus
+        lMembers.append(lCurrentMember)
+        # 1 is always the last member generated. If this happens before we calculate exactly
+        # (pModulus - 1) members, our permutation is incomplete and pBase is not a generator
+        if (i < (pModulus - 1)) and lCurrentMember == 1:
+            break
+        else:
+            lLastMember = lCurrentMember
+    # end for i
+
+    return (len(lMembers) == (pModulus - 1)), lMembers
+
+
+def print_generators(pModulus: int, pVerbose: bool) -> None:
+    # A generator modulo m is a base (as in base number for exponentiation)
+    # that produces all of the numbers in the integer ring Z-MODULUS
+    # when the base is raised to the power of all of the numbers in the integer ring Z-MODULUS
+    # (one at a time). What results is a permutation of the integer ring
+
+    # Shortcut: Generators for integer ring defined by Z-MODULUS must be found
+    # in set {Z-MODULUS} - set {0,1} since 0 raised to any power is 0 and 1 raised to any
+    # power is 1
+
+    if pVerbose:
+        # The number of generators for GF(q) is euler_totient_function(q - 1)
+        lNumberOfGenerators = euler_totient_function(pModulus - 1)
+        print()
+        print("The number of generators (primitive roots) for modulus {} is {} (phi({} - 1))".format(pModulus, lNumberOfGenerators, pModulus))
+        print()
+
+    for lBase in range(2, pModulus):
+        lIsGenerator, lMembers = is_generator(lBase, pModulus, pVerbose)
+        if lIsGenerator:
+            if pVerbose:
+                print("{} is a generator modulo {}".format(lBase, pModulus))
+                print("\tThe members are {}".format(lMembers))
+                for lIndex, lMember in enumerate(lMembers):
+                    print("\t{} ^ {} modulo {} = {}".format(lBase, lIndex, pModulus, lMember))
+                print()
+            else:
+                print("{} -> {}".format(lBase, lMembers))
+            # end if pVerbose
+        # end if lIsGenerator
+    # end for lBase
+
+
+#########################
+# Permutations          #
+#########################
 def print_permutation_cycles(pPermutation: list, pPermutationCycles: list, pVerbose: bool) -> None:
 
     if pVerbose:
@@ -360,16 +460,21 @@ if __name__ == '__main__':
 
     lArgParser = argparse.ArgumentParser(description='Utility Belt: A variety of functions helpful when studying basic crytography')
 
-    lModuloOptions = lArgParser.add_argument_group(title="Options for calculating in finite fields", description="Choose the options for calulating with respect to a modulus")
+    lModuloOptions = lArgParser.add_argument_group(title="Options for working in finite fields", description="Choose the options for calulating with respect to a modulus")
 
     lModuloOptions.add_argument('-rp', '--relative-primes', help='Calculate the relative primes with respect to MODULUS. INPUT is not relevant with respect to this function.', action='store_true')
     lModuloOptions.add_argument('-pf', '--prime-factors', help='Calculate the prime factors with respect to MODULUS. INPUT is not relevant with respect to this function.', action='store_true')
     lModuloOptions.add_argument('-cmi', '--count-multiplicative-inverses', help='Count of multiplicative inverses with respect to MODULUS using Euler Phi function. INPUT is not relevant with respect to this function.', action='store_true')
     lModuloOptions.add_argument('-gcd', '--greatest-common-divisor', help='Calculate the greatest common divisor of INPUT and MODULUS', action='store_true')
     lModuloOptions.add_argument('-mi', '--mutiplicative-inverse', help='Calculate multiplicative inverse of INPUT modulo MODULUS', action='store_true')
+    lModuloOptions.add_argument('-fe', '--fast-exponentiation', help='Calculate INPUT raised to this POWER modulo MODULUS. Set -fe/--fast-exponentiation to POWER.', type=int, action='store')
     lModuloOptions.add_argument('-mod', '--modulo', help='Calculate modulo of INPUT modulo MODULUS', action='store_true')
     lModuloOptions.add_argument('-allmods', '--all-modulo-calculations', help='Perform all available calculations of INPUT modulo MODULUS', action='store_true')
     lModuloOptions.add_argument('-m', '--modulus', help='Modulus. Default is 256.', action='store', default=256, type=int)
+
+    lGaloisFeildOptions = lArgParser.add_argument_group(title="Options for working in Galois Fields", description="Choose the options for calulating with respect to a modulus of a Galois Fields")
+    lGaloisFeildOptions.add_argument('-fg', '--find-generators', help='Calculate the generators for field of integers defined by Z-MODULUS', action='store_true')
+
 
     lPermutationOptions = lArgParser.add_argument_group(title="Options for working with Permutations", description="Choose the options for working with Permutations")
 
@@ -434,6 +539,7 @@ if __name__ == '__main__':
 
         lModulus = lArgs.modulus
 
+        # These next three options ignore INPUT
         if lArgs.prime_factors:
             print_prime_factors(lModulus, lArgs.verbose)
 
@@ -443,7 +549,11 @@ if __name__ == '__main__':
         if lArgs.relative_primes:
             print_relative_primes(lModulus, lArgs.verbose)
 
-        if lArgs.modulo or lArgs.greatest_common_divisor or lArgs.mutiplicative_inverse:
+        if lArgs.find_generators:
+            print_generators(lModulus, lArgs.verbose)
+
+        # These options require INPUT be the integer on which the calculation is performed
+        if lArgs.modulo or lArgs.greatest_common_divisor or lArgs.mutiplicative_inverse or lArgs.fast_exponentiation:
 
             try:
                 lInput = int(lArgs.INPUT)
@@ -454,6 +564,10 @@ if __name__ == '__main__':
 
             if lArgs.modulo:
                 print_modulo(lInput, lModulus, lNormalizedInput, lArgs.verbose)
+
+            if lArgs.fast_exponentiation:
+                lExponent = lArgs.fast_exponentiation
+                print_fast_exponentiation(lInput, lExponent, lModulus, lArgs.verbose)
 
             if lArgs.greatest_common_divisor or lArgs.mutiplicative_inverse:
                 lGCD = get_gcd(lNormalizedInput, lModulus)

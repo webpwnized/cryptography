@@ -359,35 +359,46 @@ def print_permutations(pPermutations: list, pPermutationSize: int, pVerbose: boo
 if __name__ == '__main__':
 
     lArgParser = argparse.ArgumentParser(description='Utility Belt: A variety of functions helpful when studying basic crytography')
-    lArgParser.add_argument('-rp', '--relative-primes', help='Calculate the relative primes with respect to MODULUS. INPUT is not relevant with respect to this function.', action='store_true')
-    lArgParser.add_argument('-pf', '--prime-factors', help='Calculate the prime factors with respect to MODULUS. INPUT is not relevant with respect to this function.', action='store_true')
-    lArgParser.add_argument('-cmi', '--count-multiplicative-inverses', help='Count of multiplicative inverses with respect to MODULUS using Euler Phi function. INPUT is not relevant with respect to this function.', action='store_true')
-    lArgParser.add_argument('-gcd', '--greatest-common-divisor', help='Calculate the greatest common divisor of INPUT and MODULUS', action='store_true')
-    lArgParser.add_argument('-mi', '--mutiplicative-inverse', help='Calculate multiplicative inverse of INPUT modulo MODULUS', action='store_true')
-    lArgParser.add_argument('-mod', '--modulo', help='Calculate modulo of INPUT modulo MODULUS', action='store_true')
-    lArgParser.add_argument('-allmods', '--all-modulo-calculations', help='Perform all available calculations of INPUT modulo MODULUS', action='store_true')
-    lArgParser.add_argument('-m', '--modulus', help='Modulus. Default is 256.', action='store', default=256, type=int)
-    lArgParser.add_argument('-pc', '--permutation-cycles', help='Calculate the permutation cycles of permutation INPUT. INPUT must be a complete set of integers in any order starting from 0.', action='store_true')
-    lArgParser.add_argument('-po', '--permutation-order', help='Calculate the order of the permutation INPUT. INPUT must be a complete set of integers in any order starting from 0.', action='store_true')
-    lArgParser.add_argument('-ip', '--invert-permutation', help='Calculate the inverse of the permutation INPUT. INPUT must be a complete set of integers in any order starting from 0.', action='store_true')
-    lArgParser.add_argument('-allperms', '--all-permutation-calculations', help='Perform all available calculations of permutation INPUT', action='store_true')
-    lArgParser.add_argument('-gp', '--generate-permutations', help='Generate permutations of size INPUT. INPUT must be an integer.', action='store_true')
+
+    lModuloOptions = lArgParser.add_argument_group(title="Options for calculating in finite fields", description="Choose the options for calulating with respect to a modulus")
+
+    lModuloOptions.add_argument('-rp', '--relative-primes', help='Calculate the relative primes with respect to MODULUS. INPUT is not relevant with respect to this function.', action='store_true')
+    lModuloOptions.add_argument('-pf', '--prime-factors', help='Calculate the prime factors with respect to MODULUS. INPUT is not relevant with respect to this function.', action='store_true')
+    lModuloOptions.add_argument('-cmi', '--count-multiplicative-inverses', help='Count of multiplicative inverses with respect to MODULUS using Euler Phi function. INPUT is not relevant with respect to this function.', action='store_true')
+    lModuloOptions.add_argument('-gcd', '--greatest-common-divisor', help='Calculate the greatest common divisor of INPUT and MODULUS', action='store_true')
+    lModuloOptions.add_argument('-mi', '--mutiplicative-inverse', help='Calculate multiplicative inverse of INPUT modulo MODULUS', action='store_true')
+    lModuloOptions.add_argument('-mod', '--modulo', help='Calculate modulo of INPUT modulo MODULUS', action='store_true')
+    lModuloOptions.add_argument('-allmods', '--all-modulo-calculations', help='Perform all available calculations of INPUT modulo MODULUS', action='store_true')
+    lModuloOptions.add_argument('-m', '--modulus', help='Modulus. Default is 256.', action='store', default=256, type=int)
+
+    lPermutationOptions = lArgParser.add_argument_group(title="Options for working with Permutations", description="Choose the options for working with Permutations")
+
+    lPermutationOptions.add_argument('-pc', '--permutation-cycles', help='Calculate the permutation cycles of permutation INPUT. INPUT must be a complete set of integers in any order starting from 0.', action='store_true')
+    lPermutationOptions.add_argument('-po', '--permutation-order', help='Calculate the order of the permutation INPUT. INPUT must be a complete set of integers in any order starting from 0.', action='store_true')
+    lPermutationOptions.add_argument('-ip', '--invert-permutation', help='Calculate the inverse of the permutation INPUT. INPUT must be a complete set of integers in any order starting from 0.', action='store_true')
+    lPermutationOptions.add_argument('-allperms', '--all-permutation-calculations', help='Perform all available calculations of permutation INPUT', action='store_true')
+    lPermutationOptions.add_argument('-gp', '--generate-permutations', help='Generate permutations of size INPUT. INPUT must be an integer.', action='store_true')
     # lArgParser.add_argument('-tc', '--theoretical-cycles', help='Find the non-redundant cycles of all permutations of size INPUT. INPUT must be an integer.', action='store_true')
     # lArgParser.add_argument('-mo', '--maximum-order', help='Find the maximum order of all permutations of size INPUT. INPUT must be an integer.', action='store_true')
-    lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
+
+    lOtherOptions = lArgParser.add_argument_group(title="Other Options", description="Choose other options")
+
+    lOtherOptions.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')
+
+    lArgParser.add_argument('INPUT', nargs='?', help='INPUT to analyze', action='store')
     lArgs = lArgParser.parse_args()
 
-    if lArgs.generate_permutations or lArgs.theoretical_cycles or lArgs.find_maximum_order:
+    if lArgs.generate_permutations:
         lPermutationSize = int(lArgs.INPUT)
         lPermutations = list(generate_permutations(lPermutationSize))
 
         if lArgs.generate_permutations:
             print_permutations(lPermutations, lPermutationSize, lArgs.verbose)
 
-        if lArgs.theoretical_cycles or lArgs.find_maximum_order:
+        # if lArgs.theoretical_cycles or lArgs.find_maximum_order:
 
-            lMaxiumumOrder = 0
-            lTheoreticalCycles = get_permutation_theoretical_cycles(lPermutationSize)
+            # lMaxiumumOrder = 0
+            # lTheoreticalCycles = get_permutation_theoretical_cycles(lPermutationSize)
                 # if lArgs.theoretical_cycles:
                 #     print_permutation_theoretical_cycles(lTheoreticalCycles, lArgs.verbose)
                 #
@@ -421,25 +432,7 @@ if __name__ == '__main__':
         if lArgs.all_modulo_calculations:
             lArgs.modulo = lArgs.count_multiplicative_inverses = lArgs.greatest_common_divisor = lArgs.modulo = lArgs.mutiplicative_inverse = lArgs.prime_factors = lArgs.relative_primes = True
 
-        try:
-            lInput = int(lArgs.INPUT)
-        except:
-            lArgParser.error('When performing calculations with respect to modulus, INPUT must be an integer')
-
         lModulus = lArgs.modulus
-        lNormalizedInput = get_int_modulo_n_in_zn(lInput, lModulus)
-
-        if lArgs.modulo:
-            print_modulo(lInput, lModulus, lNormalizedInput, lArgs.verbose)
-
-        if lArgs.greatest_common_divisor or lArgs.mutiplicative_inverse:
-            lGCD = get_gcd(lNormalizedInput, lModulus)
-
-            if lArgs.greatest_common_divisor:
-                print_gcd(lNormalizedInput, lModulus, lGCD, lArgs.verbose)
-
-            if lArgs.mutiplicative_inverse:
-                print_mutiplicative_inverse(lNormalizedInput, lModulus, lGCD, lArgs.verbose)
 
         if lArgs.prime_factors:
             print_prime_factors(lModulus, lArgs.verbose)
@@ -449,3 +442,24 @@ if __name__ == '__main__':
 
         if lArgs.relative_primes:
             print_relative_primes(lModulus, lArgs.verbose)
+
+        if lArgs.modulo or lArgs.greatest_common_divisor or lArgs.mutiplicative_inverse:
+
+            try:
+                lInput = int(lArgs.INPUT)
+            except:
+                lArgParser.error('When performing calculations with respect to modulus, INPUT must be an integer')
+
+            lNormalizedInput = get_int_modulo_n_in_zn(lInput, lModulus)
+
+            if lArgs.modulo:
+                print_modulo(lInput, lModulus, lNormalizedInput, lArgs.verbose)
+
+            if lArgs.greatest_common_divisor or lArgs.mutiplicative_inverse:
+                lGCD = get_gcd(lNormalizedInput, lModulus)
+
+                if lArgs.greatest_common_divisor:
+                    print_gcd(lNormalizedInput, lModulus, lGCD, lArgs.verbose)
+
+                if lArgs.mutiplicative_inverse:
+                    print_mutiplicative_inverse(lNormalizedInput, lModulus, lGCD, lArgs.verbose)

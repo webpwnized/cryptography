@@ -424,8 +424,11 @@ _A variety of functions helpful when studying basic crytography_
                         to 25.
 
 **Optional arguments:**
-
+ 
     -h, --help            show this help message and exit
+
+**Options for calculating in finite fields:**
+
     -rp, --relative-primes
                         Calculate the relative primes with respect to MODULUS.
                         INPUT is not relevant with respect to this function.
@@ -447,6 +450,9 @@ _A variety of functions helpful when studying basic crytography_
                         MODULUS
     -m MODULUS, --modulus MODULUS
                         Modulus. Default is 256.
+
+**Options for working with Permutations:**
+
     -pc, --permutation-cycles
                         Calculate the permutation cycles of permutation INPUT.
                         INPUT must be a complete set of integers in any order
@@ -465,7 +471,26 @@ _A variety of functions helpful when studying basic crytography_
     -gp, --generate-permutations
                         Generate permutations of size INPUT. INPUT must be an
                         integer.
+
+**Other Options:**
+
     -v, --verbose         Enables verbose output
+
+**Calculate relative primes, prime factors and count multiplicative inverses with respect to modulus 26**
+
+`python utility-belt.py -rp -pf -cmi -m 26 -v`
+
+**Calculate the greatest common divisor and multiplicative inverse of 7 modulo 26. Note that 7 is relatively prime to 26.**
+
+`python utility-belt.py -gcd -mi -m 26 -v 7`
+
+**Calculate the permutation cycles, permutation order and invert permutation 3,4,2,0,1**
+
+`python utility-belt.py -allperms -v 3,4,2,0,1`
+
+**Generate permutations of size 5**
+
+`python utility-belt.py -gp 5`
 
 # Transference
 
@@ -492,3 +517,7 @@ _A variety of functions helpful when studying basic crytography_
     -all, --all           Calculate the linear transformation table for the
                         s-box
     -v, --verbose         Enables verbose output
+    
+**Print the transfer function table and calculate the linear approximation table for s-box 3,7,1,0,5,6,4,2**
+    
+`python transference.py -all 3,7,1,0,5,6,4,2`

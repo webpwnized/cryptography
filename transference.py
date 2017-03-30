@@ -34,9 +34,9 @@ def print_transfer_function_table(pTransferFunction: list) -> None:
     # print column headers
     print()
     for i in range(0, lNumberBits):
-        print("x" + str(i) + "\t", end="")
+        print("x=" + str(i) + "\t", end="")
     for i in range(0, lNumberBits):
-        print("y" + str(i) + "\t", end="")
+        print("y=" + str(i) + "\t", end="")
     print()
 
     # print values for transfer function
@@ -64,13 +64,13 @@ def print_linear_approximation_table(pTransferFunction: list) -> None:
     # print column headers
     print("\t", end="")
     for i in range(0, lLengthTransferFunction):
-        print("b" + str(i) + "\t", end="")
+        print("b=" + str(i) + "\t", end="")
     print()
 
     for lA in range(0, lLengthTransferFunction):
 
         # print row header
-        print("a" + str(lA) + "\t", end="")
+        print("a=" + str(lA) + "\t", end="")
 
         for lB in range(0, lLengthTransferFunction):
 

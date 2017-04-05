@@ -460,6 +460,16 @@ _A variety of functions helpful when studying basic crytography_
                         Calculate the generators for field of integers defined
                         by Z-MODULUS
 
+**Options for working with congruences:**
+
+    -crt, --chinese-remainder-theorem
+                        Calculate the intersection of the set of congruences.
+                        INPUT is a set of congruences specified by CONSTANT 1,
+                        MODULUS 1; CONSTANT 2, MODULUS 2; ...; CONSTANT N,
+                        MODULUS N. For example, the set x = 12 mod 25, x = 9
+                        mod 26, x = 23 mod 27 would be specified as 12, 25; 9,
+                        26; 23, 27
+                        
 **Options for working with Permutations:**
 
     -pc, --permutation-cycles
@@ -492,6 +502,10 @@ _A variety of functions helpful when studying basic crytography_
 **Calculate the greatest common divisor and multiplicative inverse of 7 modulo 26. Note that 7 is relatively prime to 26.**
 
 `python utility-belt.py -gcd -mi -m 26 -v 7`
+
+**Calculate intersection for the set x = 12 mod 25, x = 9 mod 26, x = 23 mod 27**
+
+`python utility-belt.py -crt "12,25;9,26;23,27" -v`
 
 **Calculate 9726 ^ 3533 % 11413 = 5761 using fast exponentiation**
 

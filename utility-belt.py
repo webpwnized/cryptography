@@ -311,6 +311,68 @@ def print_mutiplicative_inverse(pNormalizedInput: int, pModulus: int, pGCD: int,
             print("NaN")
 
 
+def derive_congruences(pCongruenceStrings: str) -> list:
+
+    lCongruenceStrings = pCongruenceStrings.split(";")
+    lCongruences = []
+    for lCongruenceString in lCongruenceStrings:
+        lCongruence = list(map(int, lCongruenceString.split(",")))
+        lCongruences.append(lCongruence)
+    # end for
+
+    return lCongruences
+
+
+def get_chinese_remainder_theorem(pCongruences: list, pVerbose: bool) -> int:
+
+    # M is product of all moduli
+    M = 1
+    for lCongruence in pCongruences:
+        M *= lCongruence[1]
+
+    if pVerbose:
+        print()
+        print("M = {}".format(M))
+        print()
+
+    # mi is current modulus or the ith modulus
+    # Mi is M / mi
+    # yi is the multiplicative inverse of Mi mod mi
+    # Intersection x is
+    #   SUM(ai * Mi * yi) mod M
+    # for all pairs of congruences
+    x = 0
+    for lCongruence in pCongruences:
+        ai = lCongruence[0]
+        mi = lCongruence[1]
+        Mi = int(M / mi)  # guaranteed to be int because mi is a factor of M
+        yi = get_multiplicative_inverse(Mi, mi)
+        x += ai * Mi * yi
+        if pVerbose:
+            print("ai = {},\tmi = {},\tMi = M / mi = {} / {} = {},\tyi = {}^-1 modulo {} = {}".format(ai, mi, M, mi, Mi,
+                                                                                                      Mi, mi, yi))
+    return x % M
+
+
+def print_chinese_remainder_theorem(pCongruenceStrings: str, pVerbose: bool) -> None:
+    # This option ignores MODULUS and treats INPUT is a set of congruences specified by
+    # CONSTANT 1, MODULUS 1; CONSTANT 2, MODULUS 2; ...;  CONSTANT N, MODULUS N.
+    # For example, the set x = 12 mod 25, x = 9 mod 26, x = 23 mod 27 would be specified as 12, 25; 9, 26; 23, 27
+
+    lCongruences = derive_congruences(pCongruenceStrings)
+    lIntersection = get_chinese_remainder_theorem(lCongruences, pVerbose)
+
+    if pVerbose:
+        lCongruenceString = ""
+        for lCongruence in lCongruences:
+            lCongruenceString += "x = {} mod {}\n".format(str(lCongruence[0]), str(lCongruence[1]))
+        print()
+        print("The intersection x of congruences\n\n{}\nis {}".format(lCongruenceString, lIntersection))
+        print()
+    else:
+        print(lIntersection)
+
+
 def print_fast_exponentiation(pBase: int, pExponent: int, pModulus: int, pVerbose: bool) -> None:
     # Fast exponentiation: Given the exponent as a bit array, for each bit in the array, calculate
     # the answer for the current bit to be:
@@ -379,11 +441,11 @@ def print_generators(pModulus: int, pVerbose: bool) -> None:
     # A generator modulo m is a base (as in base number for exponentiation)
     # that produces all of the numbers in the integer ring Z-MODULUS
     # when the base is raised to the power of all of the numbers in the integer ring Z-MODULUS
-    # (one at a time). What results is a permutation of the integer ring
+    # (one at a time). What results is a permutation of the integer ring.
 
     # Shortcut: Generators for integer ring defined by Z-MODULUS must be found
     # in set {Z-MODULUS} - set {0,1} since 0 raised to any power is 0 and 1 raised to any
-    # power is 1
+    # power is 1. A result of 1 defines the end of the set.
 
     if pVerbose:
         # The number of generators for GF(q) is euler_totient_function(q - 1)
@@ -399,7 +461,7 @@ def print_generators(pModulus: int, pVerbose: bool) -> None:
                 print("{} is a generator modulo {}".format(lBase, pModulus))
                 print("\tThe members are {}".format(lMembers))
                 for lIndex, lMember in enumerate(lMembers):
-                    print("\t{} ^ {} modulo {} = {}".format(lBase, lIndex, pModulus, lMember))
+                    print("\t{} ^ {} modulo {} = {}".format(lBase, lIndex + 1, pModulus, lMember))
                 print()
             else:
                 print("{} -> {}".format(lBase, lMembers))
@@ -475,6 +537,8 @@ if __name__ == '__main__':
     lGaloisFeildOptions = lArgParser.add_argument_group(title="Options for working in Galois Fields", description="Choose the options for calulating with respect to a modulus of a Galois Fields")
     lGaloisFeildOptions.add_argument('-fg', '--find-generators', help='Calculate the generators for field of integers defined by Z-MODULUS', action='store_true')
 
+    lCRTOptions = lArgParser.add_argument_group(title="Options for working with congruences", description="Choose the options for working with congruences")
+    lCRTOptions.add_argument('-crt', '--chinese-remainder-theorem', help='Calculate the intersection of the set of congruences. INPUT is a set of congruences specified by CONSTANT 1, MODULUS 1; CONSTANT 2, MODULUS 2; ...;  CONSTANT N, MODULUS N. For example, the set x = 12 mod 25, x = 9 mod 26, x = 23 mod 27 would be specified as 12, 25; 9, 26; 23, 27', action='store_true')
 
     lPermutationOptions = lArgParser.add_argument_group(title="Options for working with Permutations", description="Choose the options for working with Permutations")
 
@@ -532,6 +596,9 @@ if __name__ == '__main__':
 
         if lArgs.invert_permutation:
             print_permutation_inverse(lPermutation, lArgs.verbose)
+
+    elif lArgs.chinese_remainder_theorem:
+        print_chinese_remainder_theorem(lArgs.INPUT, lArgs.verbose)
 
     else:
         if lArgs.all_modulo_calculations:

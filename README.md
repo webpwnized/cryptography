@@ -391,12 +391,15 @@ _A matrix variant calculator within modulo MODULUS_
                         MODULUS. Answer will be in Z-MODULUS.
     -id, --inverse-determinant
                         Calculate the inverse of the determinant of the matrix
-                        modulo MODULUS. Answer will be in Z-MODULUS.
+                        modulo MODULUS. Answer will be in Z-MODULUS. 
+                        The determinant must not be zero.
     -t, --transpose       Calculate the transpose of the matrix modulo MODULUS
     -mi, --minors         Calculate the minors of the matrix modulo MODULUS
     -c, --cofactors       Calculate the cofactors of the matrix modulo MODULUS
     -a, --adjunct         Calculate the adjunct of the matrix modulo MODULUS
-    -i, --inverse         Calculate the inverse of the matrix modulo MODULUS
+    -i, --inverse       Calculate the inverse of the matrix modulo MODULUS.
+                        The determinant must not be zero since the inverse of the 
+                        determinant must be found modulo MODULUS.
     -all, --all           Calculate the determinant, inverse determinant,
                         transpose, adjunct and inverse of the matrix modulo
                         MODULUS. Same as -id -dai

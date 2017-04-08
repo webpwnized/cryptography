@@ -367,13 +367,13 @@ def print_number_of_invertible_matrices(pSizeOfMatrix: int, pModulus: int, pVerb
 if __name__ == '__main__':
 
     lArgParser = argparse.ArgumentParser(description='Maitre D: A matrix variant calculator within modulo MODULUS')
-    lArgParser.add_argument('-d', '--determinant', help='Calculate the determinant of the matrix modulo MODULUS. Answer will be in Z-MODULUS.', action='store_true')
+    lArgParser.add_argument('-d', '--determinant', help='Calculate the determinant of the matrix modulo MODULUS. Answer will be in Z-MODULUS. The determinant must not be zero since the inverse of the determinant must be found modulo MODULUS.', action='store_true')
     lArgParser.add_argument('-id', '--inverse-determinant', help='Calculate the inverse of the determinant of the matrix modulo MODULUS. Answer will be in Z-MODULUS.', action='store_true')
     lArgParser.add_argument('-t', '--transpose', help='Calculate the transpose of the matrix modulo MODULUS', action='store_true')
     lArgParser.add_argument('-mi', '--minors', help='Calculate the minors of the matrix modulo MODULUS', action='store_true')
     lArgParser.add_argument('-c', '--cofactors', help='Calculate the cofactors of the matrix modulo MODULUS', action='store_true')
     lArgParser.add_argument('-a', '--adjunct', help='Calculate the adjunct of the matrix modulo MODULUS', action='store_true')
-    lArgParser.add_argument('-i', '--inverse', help='Calculate the inverse of the matrix modulo MODULUS', action='store_true')
+    lArgParser.add_argument('-i', '--inverse', help='Calculate the inverse of the matrix modulo MODULUS. The determinant must not be zero since the inverse of the determinant must be found modulo MODULUS.', action='store_true')
     lArgParser.add_argument('-all', '--all', help='Calculate the determinant, inverse determinant, transpose, adjunct and inverse of the matrix modulo MODULUS. Same as -id -dai', action='store_true')
     lArgParser.add_argument('-phi', '--count-invertible-matrices', help='Calculate the number of invertible matrices of size INPUT modulo MODULUS.', action='store_true')
     lArgParser.add_argument('-v', '--verbose', help='Enables verbose output', action='store_true')

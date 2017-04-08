@@ -385,31 +385,37 @@ _A matrix variant calculator within modulo MODULUS_
                         For example a 2 X 2 matrix could be 1, 2, 3, 4
 
 **Optional arguments:**
-
-  -h, --help            show this help message and exit
-  -d, --determinant     Calculate the determinant of the matrix modulo
+    
+    -h, --help            show this help message and exit
+    -d, --determinant     Calculate the determinant of the matrix modulo
                         MODULUS. Answer will be in Z-MODULUS.
-  -id, --inverse-determinant
+    -id, --inverse-determinant
                         Calculate the inverse of the determinant of the matrix
                         modulo MODULUS. Answer will be in Z-MODULUS.
-  -t, --transpose       Calculate the transpose of the matrix modulo MODULUS
-  -mi, --minors         Calculate the minors of the matrix modulo MODULUS
-  -c, --cofactors       Calculate the cofactors of the matrix modulo MODULUS
-  -a, --adjunct         Calculate the adjunct of the matrix modulo MODULUS
-  -i, --inverse         Calculate the inverse of the matrix modulo MODULUS
-  -all, --all           Calculate the determinant, inverse determinant,
+    -t, --transpose       Calculate the transpose of the matrix modulo MODULUS
+    -mi, --minors         Calculate the minors of the matrix modulo MODULUS
+    -c, --cofactors       Calculate the cofactors of the matrix modulo MODULUS
+    -a, --adjunct         Calculate the adjunct of the matrix modulo MODULUS
+    -i, --inverse         Calculate the inverse of the matrix modulo MODULUS
+    -all, --all           Calculate the determinant, inverse determinant,
                         transpose, adjunct and inverse of the matrix modulo
                         MODULUS. Same as -id -dai
-  -phi, --count-invertible-matrices
+    -phi, --count-invertible-matrices
                         Calculate the number of invertible matrices of size
                         INPUT modulo MODULUS.
-  -v, --verbose         Enables verbose output
-  -m MODULUS, --modulus MODULUS
+    -v, --verbose         Enables verbose output
+    -m MODULUS, --modulus MODULUS
                         Modulus. Default is 256.
 
 **Calculate Matrix, Determinant of Matrix, Inverse of the determinant of Matrix, Transpose Matrix, Minors Matrix, Cofactors Matrix, Adjunct Matrix and Inverse Matrix (mod 26)**
 
+**Matrix: 1 4 3 7**
+
 `python maitred.py -all --modulus=26 --verbose 1,4,3,7`
+
+**Matrix: 2 5 9 5**
+
+`python maitred.py -all --modulus=26 --verbose 2,5,9,5`
 
 **Calculate number of invertible matrices of size 2x2 with respect to modulo 6**
 

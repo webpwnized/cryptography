@@ -1,4 +1,5 @@
 import argparse
+import math
 from functools import reduce
 from itertools import permutations
 
@@ -310,6 +311,31 @@ def print_mutiplicative_inverse(pNormalizedInput: int, pModulus: int, pGCD: int,
         else:
             print("NaN")
 
+def derive_probabilities(pCommaDelimitedProbabilities: str, pVerbose: bool) -> list:
+
+    lProbabilities = list(map(float, pCommaDelimitedProbabilities.split(",")))
+
+    if pVerbose:
+        print("The sum of list {} is {}".format(lProbabilities, sum(lProbabilities)))
+
+    return lProbabilities
+
+
+def print_shannon_entropy_base_2(pCommaDelimitedProbabilities: str, pVerbose: bool) -> None:
+
+    lProbabilities = derive_probabilities(pCommaDelimitedProbabilities, pVerbose)
+
+    lShannonEntropy = 0
+    for lProbability in lProbabilities:
+        lShannonEntropy += (-1 * lProbability * math.log(lProbability, 2))
+
+    if pVerbose:
+        print()
+        print("The shannon entropy of probabilities {} is {}".format(lProbabilities, lShannonEntropy))
+        print()
+    else:
+        print(lShannonEntropy)
+
 
 def derive_congruences(pCongruenceStrings: str) -> list:
 
@@ -562,6 +588,9 @@ if __name__ == '__main__':
     lCRTOptions = lArgParser.add_argument_group(title="Options for working with congruences", description="Choose the options for working with congruences")
     lCRTOptions.add_argument('-crt', '--chinese-remainder-theorem', help='Calculate the intersection of the set of congruences. INPUT is a set of congruences specified by CONSTANT 1, MODULUS 1; CONSTANT 2, MODULUS 2; ...;  CONSTANT N, MODULUS N. For example, the set x = 12 mod 25, x = 9 mod 26, x = 23 mod 27 would be specified as 12, 25; 9, 26; 23, 27', action='store_true')
 
+    lShannonEntropyOptions = lArgParser.add_argument_group(title="Options for calculating Shannon Entropy", description="Choose the options for calulating Shannon Entropy")
+    lShannonEntropyOptions.add_argument('-se2', '--shannon-entropy-base-2', help='Calculate the base-2 Shannon Entropy for list of probabilities. INPUT must be a comma-delimited list of floating point numbers between 0 and 1. Each of these numbers is the probability of the event occuring. For example 0.5,0.33,0.165 represents 1/2,1/3,1/6. To get meaningful results, the INPUT list must add up to 1.00 within reason.', action='store_true')
+
     lPermutationOptions = lArgParser.add_argument_group(title="Options for working with Permutations", description="Choose the options for working with Permutations")
 
     lPermutationOptions.add_argument('-pc', '--permutation-cycles', help='Calculate the permutation cycles of permutation INPUT. INPUT must be a complete set of integers in any order starting from 0.', action='store_true')
@@ -621,6 +650,9 @@ if __name__ == '__main__':
 
     elif lArgs.chinese_remainder_theorem:
         print_chinese_remainder_theorem(lArgs.INPUT, lArgs.verbose)
+
+    elif lArgs.shannon_entropy_base_2:
+        print_shannon_entropy_base_2(lArgs.INPUT, lArgs.verbose)
 
     else:
         if lArgs.all_modulo_calculations:

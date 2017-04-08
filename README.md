@@ -472,7 +472,7 @@ _A variety of functions helpful when studying basic crytography_
                         Calculate the generators for field of integers defined
                         by Z-MODULUS
 
-**Options for working with congruences:**
+**Options for working with Congruences:**
 
     -crt, --chinese-remainder-theorem
                         Calculate the intersection of the set of congruences.
@@ -481,6 +481,17 @@ _A variety of functions helpful when studying basic crytography_
                         MODULUS N. For example, the set x = 12 mod 25, x = 9
                         mod 26, x = 23 mod 27 would be specified as 12, 25; 9,
                         26; 23, 27
+
+**Options for calculating Shannon Entropy:**
+
+    -se2, --shannon-entropy-base-2
+                        Calculate the base-2 Shannon Entropy for list of
+                        probabilities. INPUT must be a comma-delimited list of
+                        floating point numbers between 0 and 1. Each of these
+                        numbers is the probability of the event occuring. For
+                        example 0.5,0.33,0.165 represents 1/2,1/3,1/6. To get
+                        meaningful results, the INPUT list must add up to 1.00
+                        within reason.
                         
 **Options for working with Permutations:**
 
@@ -526,6 +537,10 @@ _A variety of functions helpful when studying basic crytography_
 **Calculate all primitive root generators modulo 7**
 
 `python utility-belt.py -fg -m 7 -v`
+
+**Calculate the Shannon Entropy of probabilities 1/2, 1/3 and 1/6**
+
+`python utility-belt.py -se2 -v .5,.33,.165`
 
 **Calculate the permutation cycles, permutation order and invert permutation 3,4,2,0,1**
 

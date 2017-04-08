@@ -326,7 +326,11 @@ def print_matrix(pMatrix: bytearray) -> None:
 
 
 def get_number_of_invertible_matrices(pSizeOfMatrix: int, pModulus: int) -> None:
-
+    # Steps
+    #   Read size of matrix (size of one side)
+    #   Factor modulus m
+    #       For each prime factor of m:
+    #           get product of [ prime-factor raised to (e - 1) * n**2 ] * [from k = 0 to n-1: product of (pi ** n - pi ** k)]
     lPrimeFactors = get_prime_factors(pModulus)
 
     lPrimeFactorsAndExponents = []

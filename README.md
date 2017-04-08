@@ -411,6 +411,9 @@ _A matrix variant calculator within modulo MODULUS_
 
 `python maitred.py -all --modulus=26 --verbose 1,4,3,7`
 
+**Calculate number of invertible matrices of size 2x2 with respect to modulo 6**
+
+`python maitred.py -phi -m 6 2`
 
  # Utility Belt
  

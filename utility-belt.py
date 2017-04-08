@@ -410,7 +410,7 @@ def print_fast_exponentiation(pBase: int, pExponent: int, pModulus: int, pVerbos
         print(lCurrentCalulation)
 
 
-def is_generator(pBase: int, pModulus: int, pVerbose: bool) -> tuple:
+def get_generator(pBase: int, pModulus: int, pVerbose: bool) -> tuple:
     # If a base number is a generator with respect to GF(pModulus),
     # raising the base to each of the integers in the ring defined
     # by pModulus (mod pModulus) will result in a permutation containing
@@ -437,6 +437,27 @@ def is_generator(pBase: int, pModulus: int, pVerbose: bool) -> tuple:
     return (len(lMembers) == (pModulus - 1)), lMembers
 
 
+def is_generator(pBase: int, pModulus: int, pVerbose: bool) -> bool:
+    # formula is phi(m) = product(from 1 to #prime factors):
+    #           (prime-factor(i) - 1) * (prime-factor(i) ^ (exponent(prime-factor(i)) - 1)
+    # but for a prime number, there is only one factor besides the number 1
+    # so (prime-factor(i) ^ (exponent(prime-factor(i)) - 1) always = 1
+    # Therefore (prime-factor(i) - 1) ends up being phi(m)
+    lCountRelativePrimesToModulus = pModulus - 1
+
+    # Prime factors of (Modulus - 1)
+    lPrimeFactors = get_prime_factors(lCountRelativePrimesToModulus)
+
+    if pModulus < 3:
+        return False
+
+    for lPrimeFactor in lPrimeFactors:
+        if (pBase**(lCountRelativePrimesToModulus/lPrimeFactor)) % pModulus == 1:
+            return False
+
+    return True
+
+
 def print_generators(pModulus: int, pVerbose: bool) -> None:
     # A generator modulo m is a base (as in base number for exponentiation)
     # that produces all of the numbers in the integer ring Z-MODULUS
@@ -455,18 +476,19 @@ def print_generators(pModulus: int, pVerbose: bool) -> None:
         print()
 
     for lBase in range(2, pModulus):
-        lIsGenerator, lMembers = is_generator(lBase, pModulus, pVerbose)
-        if lIsGenerator:
-            if pVerbose:
-                print("{} is a generator modulo {}".format(lBase, pModulus))
-                print("\tThe members are {}".format(lMembers))
-                for lIndex, lMember in enumerate(lMembers):
-                    print("\t{} ^ {} modulo {} = {}".format(lBase, lIndex + 1, pModulus, lMember))
-                print()
-            else:
-                print("{} -> {}".format(lBase, lMembers))
-            # end if pVerbose
-        # end if lIsGenerator
+        if is_generator(lBase, pModulus, pVerbose):
+            lIsGenerator, lMembers = get_generator(lBase, pModulus, pVerbose)
+            if lIsGenerator:
+                if pVerbose:
+                    print("{} is a generator modulo {}".format(lBase, pModulus))
+                    print("\tThe members are {}".format(lMembers))
+                    for lIndex, lMember in enumerate(lMembers):
+                        print("\t{} ^ {} modulo {} = {}".format(lBase, lIndex + 1, pModulus, lMember))
+                    print()
+                else:
+                    print("{} -> {}".format(lBase, lMembers))
+                # end if pVerbose
+            # end if lIsGenerator
     # end for lBase
 
 

@@ -388,12 +388,9 @@ def encrypt(pPlaintextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytear
     lNumberBlocks = math.ceil(lBytesOfPlaintext / lBlockSize)
     lCipherText = bytearray()
 
+    # Determine how many pad bytes are needed
     lLengthLastBlock = lBytesOfPlaintext % lBlockSize
-
-    if lLengthLastBlock > 0:
-        lPadBytesNeeded = lBlockSize - lLengthLastBlock
-    else:
-        lPadBytesNeeded = 0
+    lPadBytesNeeded = (lBlockSize - lLengthLastBlock) % lBlockSize
 
     # Append number of pad bytes needed to end of plaintext |pad bytes| times
     if lPadBytesNeeded > 0:
@@ -436,6 +433,7 @@ def encrypt(pPlaintextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytear
 
     # end for lCurrentPlaintextBlockIndex
 
+    # If plaintext was padding, mark the end so decryption routine knows
     if lPadBytesNeeded > 0:
         lCipherText += get_padblock()
 
@@ -451,8 +449,10 @@ def decrypt(pCiphertextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytea
     lSizeOfMatrix = len(lTransposeKey)
     lBlockSize = int(math.sqrt(lSizeOfMatrix)) # or row length or column height if you prefer
     lBytesOfCiphertext = len(pCiphertextBytes)
-    lNumberBlocks = math.ceil(lBytesOfCiphertext / lBlockSize)
+    lNumberBlocks = int(math.ceil(lBytesOfCiphertext / lBlockSize))
     lPlaintext = bytearray()
+
+    # Adjustments needed if plaintext block was padded before encryption
     lStartPaddingIndicationBlock = lBytesOfCiphertext - PADDING_INDICATION_BLOCK_LENGTH
     lEndPaddingIndicationBlock = lBytesOfCiphertext
     lPaddingDetected = False
@@ -491,6 +491,7 @@ def decrypt(pCiphertextBytes: bytearray, pKey: bytearray, pModulus:int) -> bytea
 
     # end for lCurrentPlaintextBlockIndex
 
+    # If padding occured, the amount needed is the value of the pad byte itself
     if lPaddingDetected:
         lPadBytesNeeded = lPlaintext[lBytesOfCiphertext-1]
 

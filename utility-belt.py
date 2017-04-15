@@ -2,6 +2,7 @@ import argparse
 import math
 from functools import reduce
 from itertools import permutations
+from argparse import RawTextHelpFormatter
 
 
 def derive_permutation(pPermutationString: str) -> list:
@@ -398,8 +399,7 @@ def print_chinese_remainder_theorem(pCongruenceStrings: str, pVerbose: bool) -> 
     else:
         print(lIntersection)
 
-
-def print_fast_exponentiation(pBase: int, pExponent: int, pModulus: int, pVerbose: bool) -> None:
+def get_fast_exponentiation(pBase: int, pExponent: int, pModulus: int, pVerbose: bool) -> int:
     # Fast exponentiation: Given the exponent as a bit array, for each bit in the array, calculate
     # the answer for the current bit to be:
     #   if bit is 0: current answer is last answer ^ 2
@@ -408,15 +408,12 @@ def print_fast_exponentiation(pBase: int, pExponent: int, pModulus: int, pVerbos
     # Note: the "first" bit is the MSB and the "last" bit is the LSB
 
     lExponentBitArray = bin(pExponent)[2:]
-
     lLastCalculation = 1
-    if pVerbose:
-        print("-\t-----\t------")
-        print("i\te-bit\tAnswer")
-        print("-\t-----\t------")
+    lCurrentCalulation = 0
     for lIndex, lBit in enumerate(lExponentBitArray):
         # Shortcut: Regardless we square the last answer
         lCurrentCalulation = (lLastCalculation ** 2) % pModulus
+        # If the exponent bit is 1, we additionally multiply by the base
         if int(lBit) == 1:
             lCurrentCalulation = (lCurrentCalulation * pBase) % pModulus
             if pVerbose:
@@ -427,13 +424,31 @@ def print_fast_exponentiation(pBase: int, pExponent: int, pModulus: int, pVerbos
         lLastCalculation = lCurrentCalulation
     # end for
 
+    return lCurrentCalulation
+
+
+def print_fast_exponentiation(pBase: int, pExponent: int, pModulus: int, pVerbose: bool) -> None:
+    # Fast exponentiation: Given the exponent as a bit array, for each bit in the array, calculate
+    # the answer for the current bit to be:
+    #   if bit is 0: current answer is last answer ^ 2
+    #   if bit is 1: current answer is last answer ^ 2 * base
+    # The final answer is the answer for the last bit
+    # Note: the "first" bit is the MSB and the "last" bit is the LSB
+
+    if pVerbose:
+        print("-\t-----\t------")
+        print("i\te-bit\tAnswer")
+        print("-\t-----\t------")
+
+    lAnswer = get_fast_exponentiation(pBase, pExponent, pModulus, pVerbose)
+
     if pVerbose:
         print()
-        print("{} raised to the {} power modulo {} is {}".format(pBase, pExponent, pModulus, lCurrentCalulation))
+        print("{} raised to the {} power modulo {} is {}".format(pBase, pExponent, pModulus, lAnswer))
         print()
-        print("{} ^ {} % {} = {}".format(pBase, pExponent, pModulus, lCurrentCalulation))
+        print("{} ^ {} % {} = {}".format(pBase, pExponent, pModulus, lAnswer))
     else:
-        print(lCurrentCalulation)
+        print(lAnswer)
 
 
 def get_generator(pBase: int, pModulus: int, pVerbose: bool) -> tuple:
@@ -568,7 +583,9 @@ def print_permutations(pPermutations: list, pPermutationSize: int, pVerbose: boo
 
 if __name__ == '__main__':
 
-    lArgParser = argparse.ArgumentParser(description='Utility Belt: A variety of functions helpful when studying basic crytography')
+    lArgParser = argparse.ArgumentParser(description='Utility Belt: A variety of functions helpful when studying basic crytography',
+                                         epilog='**Calculate relative primes, prime factors and count multiplicative inverses with respect to modulus 26**\n\npython utility-belt.py -rp -pf -cmi -m 26 -v\n\n**Calculate the greatest common divisor and multiplicative inverse of 7 modulo 26. Note that 7 is relatively prime to 26.**\n\npython utility-belt.py -gcd -mi -m 26 -v 7\n\n**Calculate intersection for the set x = 12 mod 25, x = 9 mod 26, x = 23 mod 27**\n\npython utility-belt.py -crt "12,25;9,26;23,27" -v\n\n**Calculate 9726 ^ 3533 % 11413 = 5761 using fast exponentiation**\n\npython utility-belt.py -v -fe 3533 -m 11413 9726\n\n**Calculate all primitive root generators modulo 7**\n\npython utility-belt.py -fg -m 7 -v\n\n**Calculate the Shannon Entropy of probabilities 1/2, 1/3 and 1/6**\n\npython utility-belt.py -se2 -v .5,.33,.165\n\n**Calculate the permutation cycles, permutation order and invert permutation 3,4,2,0,1**\n\npython utility-belt.py -allperms -v 3,4,2,0,1\n\n**Generate permutations of size 5**\n\npython utility-belt.py -gp 5\n\n',
+                                         formatter_class=RawTextHelpFormatter)
 
     lModuloOptions = lArgParser.add_argument_group(title="Options for working in finite fields", description="Choose the options for calulating with respect to a modulus")
 

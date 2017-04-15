@@ -346,6 +346,14 @@ _RSA Training Tool: An implementation of the RSA cipher system. Each plaintext c
 
 `python rsa.py -v -b 4 -k 1982353093 -d -m 4295229443 -if base64 REVMTRZIMtQAAQIDBAUGBwgJ`
 
+**Encrypt plaintext file chuck-d.txt with public key 13 modulo 4295229443. Encryption was done with blocksize of 4. Padding required because length of plaintext not divisible by blocksize.**
+
+`python rsa.py -b 4 -k 13 -e -m 4295229443 -of binary -i test-files\chuck-d.txt> encrypted-chuck.bin`
+
+**Decrypt plaintext file encrypted-chuck.bin with private key 1982353093 modulo 4295229443. Encryption was done with blocksize of 4. Padding required because length of plaintext not divisible by blocksize.**
+
+`python rsa.py -b 4 -k 1982353093 -d -m 4295229443 -if binary -i encrypted-chuck.bin > decrypted-chuck.txt`
+
 # Freak
 
 _An implementation of a frequency and cryptography analyzer_

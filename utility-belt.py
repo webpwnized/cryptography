@@ -352,10 +352,37 @@ def derive_congruences(pCongruenceStrings: str) -> list:
 
 def get_chinese_remainder_theorem(pCongruences: list, pVerbose: bool) -> int:
 
+    # Given cx = y mod p
+    # lCongruence[0] => coefficient c of x
+    # lCongruence[1] => constant y
+    # lCongruence[2] => modulus p
+
+    # Before we start, the congruences need to be in "standard form". If the
+    # congruence is c * x = y mod p, we need to find the multiplicative inverse
+    # of c (mod p) and multiply both sides with this result. The reason is we
+    # need the congruence to have to constant c in front of x. (Or we can think
+    # of the constant c must be 1).
+    # c * x = y mod p => c * 1/c * x = 1/c * y mod p => x = y/c mod p where y/c is
+    # and integer in range 1 to p - 1
+    lMultiplicativeInverseOfC = 0
+    for lCongruence in pCongruences:
+        if lCongruence[0] != 1:
+            lGCD = get_gcd(lCongruence[0], lCongruence[2])
+            if lGCD != 1:
+                lError = "Critical error trying to calculate CRT. The coefficient {} is not relatively prime to modulo {} so the multiplicative inverse of {} does not exist".format(lCongruence[0], lCongruence[2], lCongruence[0])
+                raise Exception(lError)
+            lMultiplicativeInverseOfC = get_multiplicative_inverse(lCongruence[0], lCongruence[2])
+            lCongruence[1] *= lMultiplicativeInverseOfC
+            lCongruence[0] = 1
+        # end if
+    # end for
+
     # M is product of all moduli
     M = 1
     for lCongruence in pCongruences:
-        M *= lCongruence[1]
+        if pVerbose:
+            print("Modulus: {}".format(lCongruence[2]))
+        M *= lCongruence[2]
 
     if pVerbose:
         print()
@@ -370,8 +397,8 @@ def get_chinese_remainder_theorem(pCongruences: list, pVerbose: bool) -> int:
     # for all pairs of congruences
     x = 0
     for lCongruence in pCongruences:
-        ai = lCongruence[0]
-        mi = lCongruence[1]
+        ai = lCongruence[1]
+        mi = lCongruence[2]
         Mi = int(M / mi)  # guaranteed to be int because mi is a factor of M
         yi = get_multiplicative_inverse(Mi, mi)
         x += ai * Mi * yi
@@ -384,7 +411,7 @@ def get_chinese_remainder_theorem(pCongruences: list, pVerbose: bool) -> int:
 def print_chinese_remainder_theorem(pCongruenceStrings: str, pVerbose: bool) -> None:
     # This option ignores MODULUS and treats INPUT is a set of congruences specified by
     # CONSTANT 1, MODULUS 1; CONSTANT 2, MODULUS 2; ...;  CONSTANT N, MODULUS N.
-    # For example, the set x = 12 mod 25, x = 9 mod 26, x = 23 mod 27 would be specified as 12, 25; 9, 26; 23, 27
+    # For example, the set 2x = 12 mod 25, 1x = 9 mod 26, 1x = 23 mod 27 would be specified as 2, 12, 25; 1, 9, 26; 1, 23, 27
 
     lCongruences = derive_congruences(pCongruenceStrings)
     lIntersection = get_chinese_remainder_theorem(lCongruences, pVerbose)
@@ -603,7 +630,7 @@ if __name__ == '__main__':
     lGaloisFeildOptions.add_argument('-fg', '--find-generators', help='Calculate the generators for field of integers defined by Z-MODULUS', action='store_true')
 
     lCRTOptions = lArgParser.add_argument_group(title="Options for working with congruences", description="Choose the options for working with congruences")
-    lCRTOptions.add_argument('-crt', '--chinese-remainder-theorem', help='Calculate the intersection of the set of congruences. INPUT is a set of congruences specified by CONSTANT 1, MODULUS 1; CONSTANT 2, MODULUS 2; ...;  CONSTANT N, MODULUS N. For example, the set x = 12 mod 25, x = 9 mod 26, x = 23 mod 27 would be specified as 12, 25; 9, 26; 23, 27', action='store_true')
+    lCRTOptions.add_argument('-crt', '--chinese-remainder-theorem', help='Calculate the intersection of the set of congruences. INPUT is a set of congruences specified by COEFICIENT 1, CONSTANT 1, MODULUS 1; COEFICIENT 2, CONSTANT 2, MODULUS 2; ...; COEFICIENT N, CONSTANT N, MODULUS N;. For example, the set 2x = 12 mod 25, 1x = 9 mod 26, 1x = 23 mod 27 would be specified as 2, 12, 25; 1, 9, 26; 1, 23, 27', action='store_true')
 
     lShannonEntropyOptions = lArgParser.add_argument_group(title="Options for calculating Shannon Entropy", description="Choose the options for calulating Shannon Entropy")
     lShannonEntropyOptions.add_argument('-se2', '--shannon-entropy-base-2', help='Calculate the base-2 Shannon Entropy for list of probabilities. INPUT must be a comma-delimited list of floating point numbers between 0 and 1. Each of these numbers is the probability of the event occuring. For example 0.5,0.33,0.165 represents 1/2,1/3,1/6. To get meaningful results, the INPUT list must add up to 1.00 within reason.', action='store_true')

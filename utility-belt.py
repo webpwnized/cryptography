@@ -419,12 +419,13 @@ def print_chinese_remainder_theorem(pCongruenceStrings: str, pVerbose: bool) -> 
     if pVerbose:
         lCongruenceString = ""
         for lCongruence in lCongruences:
-            lCongruenceString += "x = {} mod {}\n".format(str(lCongruence[0]), str(lCongruence[1]))
+            lCongruenceString += "x = {} mod {}\n".format(str(lCongruence[1]), str(lCongruence[2]))
         print()
         print("The intersection x of congruences\n\n{}\nis {}".format(lCongruenceString, lIntersection))
         print()
     else:
         print(lIntersection)
+
 
 def get_fast_exponentiation(pBase: int, pExponent: int, pModulus: int, pVerbose: bool) -> int:
     # Fast exponentiation: Given the exponent as a bit array, for each bit in the array, calculate

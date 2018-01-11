@@ -284,8 +284,8 @@ if __name__ == '__main__':
     lOutputOptions.add_argument('-c', '--show-count', help='Show count for each byte of input', action='store_true')
     lOutputOptions.add_argument('-p', '--show-percent', help='Show percent representation for each byte of input', action='store_true')
     lOutputOptions.add_argument('-m', '--show-histogram', help='Show histogram for each byte of input', action='store_true')
-    lOutputOptions.add_argument('-a', '--show-ascii', help='Show ascii representation for each byte of input', action='store_true')
-    lOutputOptions.add_argument('-all', '--show-all', help='Show statistics, count, ascii, percent represenation, histogram for each byte of input and Shannon entropy for input. Does NOT include index of coincidence or show ascii. Equivalent to -cpme -mean -median -mode -variance -stddev.', action='store_true')
+    lOutputOptions.add_argument('-a', '--show-ascii', help='Show ASCII representation for each byte of input', action='store_true')
+    lOutputOptions.add_argument('-all', '--show-all', help='Show statistics, count, ASCII, percent represenation, histogram for each byte of input and Shannon entropy for input. Does NOT include index of coincidence or show ascii. Equivalent to -cpme -mean -median -mode -variance -stddev.', action='store_true')
 
     lStatisticsOptions = lArgParser.add_argument_group(title="Statistics Options", description="Choose the type(s) of statistical output to display")
 
@@ -300,11 +300,11 @@ if __name__ == '__main__':
 
     lIOCOptions = lArgParser.add_argument_group(title="Index of Coincidence Options", description="Choose the type(s) of IOC output to display")
 
-    lIOCOptions.add_argument('-ioc', '--show-ioc', help='Show kappa (kappa) index of coincidence', action='store_true')
+    lIOCOptions.add_argument('-ioc', '--show-ioc', help='Show kappa index of coincidence', action='store_true')
 
     lColumnarAnalysisOptions = lArgParser.add_argument_group(title="Columnar Analysis Options", description="Choose the type(s) of output to display")
 
-    lColumnarAnalysisOptions.add_argument('-t', '--top-frequencies', help='Only display top X frequencies. Particuarly useful when combined with columnar analysis or when less important bytes clutter analysis.', action='store', type=int)
+    lColumnarAnalysisOptions.add_argument('-t', '--top-frequencies', help='Only display top X frequencies. Particuarly useful when combined with columnar analysis, histogram or when less important bytes clutter analysis.', action='store', type=int)
     lColumnarAnalysisOptions.add_argument('-g', '--show-guesses', help='Show ascii representation for top byte of input. Tries ASCII lower, upper and numeric translations. Only works with -t/--top-frequencies.', action='store_true')
     lColumnarAnalysisOptions.add_argument('-col', '--columnar-analysis', help='Break INPUT into X columns and perform analysis on columns. Particuarly useful against polyalphabetic stream ciphers.', action='store', type=int)
 

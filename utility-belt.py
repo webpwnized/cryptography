@@ -141,6 +141,7 @@ def generate_permutations(pPermutationSize: int) -> list:
 
 # BEGIN MODULAR FUNCTIONS
 
+
 def get_relative_primes(pModulus: int) -> list:
     lRelativePrimes = []
     for i in range(1, pModulus):

@@ -381,8 +381,8 @@ _An implementation of a frequency and cryptography analyzer_
     -c, --show-count      Show count for each byte of input
     -p, --show-percent    Show percent representation for each byte of input
     -m, --show-histogram  Show histogram for each byte of input
-    -a, --show-ascii      Show ascii representation for each byte of input
-    -all, --show-all      Show statistics, count, ascii, percent represenation, histogram for each byte of input and Shannon entropy for input. Does NOT include index of coincidence. Equivalent to -cpmae -mean -median -mode -variance -stddev.
+    -a, --show-ascii      Show ASCII representation for each byte of input
+    -all, --show-all      Show statistics, count, ASCII, percent represenation, histogram for each byte of input and Shannon entropy for input. Does NOT include index of coincidence. Equivalent to -cpmae -mean -median -mode -variance -stddev.
 
 **Optional Statistics Options:**
 
@@ -406,14 +406,14 @@ _An implementation of a frequency and cryptography analyzer_
 
     Choose the type(s) of IOC output to display
     
-    -ioc, --show-ioc      Show kappa (kappa) index of coincidence
+    -ioc, --show-ioc      Show kappa index of coincidence
 
 **Optional Columnar Analysis Options:**
 
     Choose the type(s) of output to display
     
     -t TOP_FREQUENCIES, --top-frequencies TOP_FREQUENCIES
-                        Only display top X frequencies. Particuarly useful when combined with columnar analysis or when less important bytes clutter analysis.
+                        Only display top X frequencies. Particuarly useful when combined with columnar analysis, histogram or when less important bytes clutter analysis.
     -g, --show-guesses    Show ascii representation for top byte of input. Tries ASCII lower, upper and numeric translations. Only works with -t/--top-frequencies.
     -col COLUMNAR_ANALYSIS, --columnar-analysis COLUMNAR_ANALYSIS
                         Break INPUT into X columns and perform analysis on columns. Particuarly useful against polyalphabetic stream ciphers.

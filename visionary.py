@@ -121,7 +121,7 @@ if __name__ == '__main__':
                                          formatter_class=RawTextHelpFormatter)
     lEncryptionActionGroup = lArgParser.add_mutually_exclusive_group(required=True)
     lEncryptionActionGroup.add_argument('-e', '--encrypt', help='Encrypt INPUT. This option requires a KEY.', action='store_true')
-    lEncryptionActionGroup.add_argument('-d', '--decrypt', help='Decrypt INPUT. This option requires a KEY or BRUTEFORCE flag.', action='store_true')
+    lEncryptionActionGroup.add_argument('-d', '--decrypt', help='Decrypt INPUT. This option requires a KEY.', action='store_true')
     lKeyOrBruteforceActionGroup = lArgParser.add_mutually_exclusive_group(required=True)
     lKeyOrBruteforceActionGroup.add_argument('-k', '--key', help='Encryption/Decryption key', type=str, action='store')
     lArgParser.add_argument('-if', '--input-format', help='Input format can be character, binary, or base64', choices=['character', 'binary', 'base64'], default='character', action='store')
